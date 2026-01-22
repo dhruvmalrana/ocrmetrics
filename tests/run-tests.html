@@ -129,6 +129,32 @@
     <script src="../static/js/matcher.js"></script>
     <script src="../static/js/metrics.js"></script>
 
+    <!-- Initialize test registry BEFORE loading test files -->
+    <script>
+        window.TestRegistry = {
+            suites: [],
+            register: function(name, suite) {
+                this.suites.push({ name, suite });
+            },
+            runAll: function() {
+                let totalPassed = 0;
+                let totalFailed = 0;
+
+                for (const { name, suite } of this.suites) {
+                    const result = suite.run();
+                    totalPassed += result.passed;
+                    totalFailed += result.failed;
+                }
+
+                console.log(`\n═══════════════════════════════════════`);
+                console.log(`Total: ${totalPassed} passed, ${totalFailed} failed`);
+                console.log(`═══════════════════════════════════════`);
+
+                return totalFailed === 0;
+            }
+        };
+    </script>
+
     <!-- Load test suites -->
     <script src="test-preprocessor.js"></script>
     <script src="test-matcher.js"></script>
@@ -166,72 +192,37 @@
             originalError.apply(console, args);
         };
 
-        // Prevent auto-run on DOMContentLoaded
-        const scripts = document.querySelectorAll('script[src^="test-"]');
-
         function runAllTests() {
             output.innerHTML = '';
             summaryDiv.style.display = 'none';
             runAllBtn.disabled = true;
 
-            let totalPassed = 0;
-            let totalFailed = 0;
-
             appendOutput('═══════════════════════════════════════════════════', 'info');
             appendOutput('  OCR Metrics Evaluator - Test Suite', 'info');
             appendOutput('═══════════════════════════════════════════════════', 'info');
             appendOutput('');
 
-            // Run each test file
-            const testFiles = [
-                { name: 'Preprocessor (Text Normalization)', file: 'test-preprocessor.js' },
-                { name: 'Matcher (Word Matching)', file: 'test-matcher.js' },
-                { name: 'Metrics (Precision, Recall, F1, CRR)', file: 'test-metrics.js' }
-            ];
+            // Run all registered test suites
+            if (window.TestRegistry && window.TestRegistry.suites.length > 0) {
+                const allPassed = window.TestRegistry.runAll();
 
-            // We need to manually trigger the tests since we prevented auto-run
-            setTimeout(() => {
-                // Run utils tests
-                appendOutput('───────────────────────────────────────────────────', 'info');
-                appendOutput(`Running: ${testFiles[0].name}`, 'info');
-                appendOutput('───────────────────────────────────────────────────', 'info');
-
-                // Manually run test suites (they're already loaded)
-                // We'll collect results from the global tests arrays
-
-                // This is a workaround - in production you'd organize this better
-                runAllTestsInternal();
-            }, 100);
-        }
-
-        function runAllTestsInternal() {
-            // Clear previous test runs
-            output.innerHTML = '';
-
-            appendOutput('═══════════════════════════════════════════════════', 'info');
-            appendOutput('  OCR Metrics Evaluator - Test Suite', 'info');
-            appendOutput('═══════════════════════════════════════════════════', 'info');
-            appendOutput('');
-
-            // Since the test files auto-execute, just wait a bit for them to complete
-            // In a real setup, you'd have better control flow
-
-            setTimeout(() => {
                 appendOutput('');
-                appendOutput('═══════════════════════════════════════════════════', 'info');
-                appendOutput('  All Tests Complete!', 'success');
-                appendOutput('═══════════════════════════════════════════════════', 'info');
-                appendOutput('');
-                appendOutput('Check the output above for detailed results.', 'info');
-                appendOutput('If all tests passed, you\'re ready to deploy! 🚀', 'success');
-
-                runAllBtn.disabled = false;
-
-                // Show summary
                 summaryDiv.style.display = 'block';
-                summaryDiv.className = 'summary pass';
-                summaryDiv.textContent = '✓ Check console output above for test results';
-            }, 2000);
+                if (allPassed) {
+                    summaryDiv.className = 'summary pass';
+                    summaryDiv.textContent = '✓ All tests passed!';
+                } else {
+                    summaryDiv.className = 'summary fail';
+                    summaryDiv.textContent = '✗ Some tests failed!';
+                }
+            } else {
+                appendOutput('No test suites registered!', 'error');
+                summaryDiv.style.display = 'block';
+                summaryDiv.className = 'summary fail';
+                summaryDiv.textContent = '✗ No tests found';
+            }
+
+            runAllBtn.disabled = false;
         }
 
         clearBtn.addEventListener('click', () => {
@@ -239,19 +230,10 @@
             summaryDiv.style.display = 'none';
         });
 
-        runAllBtn.addEventListener('click', () => {
-            // Reload the page to re-run tests cleanly
-            location.reload();
-            setTimeout(runAllTests, 100);
-        });
+        runAllBtn.addEventListener('click', runAllTests);
 
-        // Simple approach: just run tests on load and capture output
-        window.addEventListener('DOMContentLoaded', () => {
-            // Tests will auto-run, just capture the output
-            setTimeout(() => {
-                runAllBtn.disabled = false;
-            }, 2500);
-        });
+        // Auto-run tests on page load
+        window.addEventListener('DOMContentLoaded', runAllTests);
     </script>
 </body>
 </html>

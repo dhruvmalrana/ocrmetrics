@@ -152,7 +152,7 @@ To test batch mode, you can use files from any `examples/` folder.
 3. Update `examples/examples.json` with example metadata
 4. Refresh page - your example appears!
 
-See [EXAMPLES_GUIDE.md](EXAMPLES_GUIDE.md) for complete instructions and JSON format.
+See [examples/README.md](examples/README.md) for complete instructions and JSON format.
 
 ## How It Works
 
@@ -266,5 +266,4 @@ Pull requests welcome! Please include tests for new features.
 
 - [Deployment Guide](DEPLOYMENT.md)
 - [Testing Guide](TESTING.md)
-- [Changes Summary](CHANGES.md)
-- [Examples Guide](EXAMPLES_GUIDE.md)
+- [Examples Guide](examples/README.md)

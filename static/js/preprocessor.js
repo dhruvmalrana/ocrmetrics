@@ -88,27 +88,34 @@ function preprocessText(text, config) {
 
     for (let i = 0; i < originalWords.length; i++) {
         const original = originalWords[i];
-        let normalized = original;
+        let parts = [original];
 
-        // Normalize this specific word
+        // When ignoring punctuation, split on punctuation characters first
+        // This handles cases like "INV-2024-001" -> ["INV", "2024", "001"]
         if (config.ignore_punctuation !== false) {
             const punctChars = config.punctuation_chars || '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
-            normalized = removePunctuation(normalized, punctChars);
+            const pattern = new RegExp(`[${punctChars.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]+`);
+            parts = original.split(pattern).filter(p => p.length > 0);
         }
 
-        // Handle case sensitivity
-        if (config.case_sensitive !== true) {
-            normalized = normalized.toLowerCase();
-        }
+        // Process each part
+        for (const part of parts) {
+            let normalized = part;
 
-        // Only keep non-empty words (but maintain correct pairing)
-        if (normalized) {
-            normalizedWords.push(normalized);
-            wordData.push({
-                normalized: normalized,
-                original: original,
-                position: normalizedWords.length - 1  // Position in normalized list
-            });
+            // Handle case sensitivity
+            if (config.case_sensitive !== true) {
+                normalized = normalized.toLowerCase();
+            }
+
+            // Only keep non-empty words
+            if (normalized) {
+                normalizedWords.push(normalized);
+                wordData.push({
+                    normalized: normalized,
+                    original: original,
+                    position: normalizedWords.length - 1  // Position in normalized list
+                });
+            }
         }
     }
 

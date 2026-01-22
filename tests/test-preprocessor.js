@@ -3,44 +3,47 @@
  * Tests text preprocessing functionality
  */
 
-const tests = [];
-let passedTests = 0;
-let failedTests = 0;
+(function() {
+    const tests = [];
+    let passedTests = 0;
+    let failedTests = 0;
 
-function test(name, fn) {
-    tests.push({ name, fn });
-}
-
-function assertEquals(actual, expected, message) {
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-        throw new Error(`${message}\nExpected: ${JSON.stringify(expected)}\nActual: ${JSON.stringify(actual)}`);
+    function test(name, fn) {
+        tests.push({ name, fn });
     }
-}
 
-function assertTrue(condition, message) {
-    if (!condition) {
-        throw new Error(message);
-    }
-}
-
-function runTests() {
-    console.log('Running preprocessor.js tests...\n');
-
-    for (const { name, fn } of tests) {
-        try {
-            fn();
-            console.log(`✓ ${name}`);
-            passedTests++;
-        } catch (error) {
-            console.error(`✗ ${name}`);
-            console.error(`  ${error.message}`);
-            failedTests++;
+    function assertEquals(actual, expected, message) {
+        if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+            throw new Error(`${message}\nExpected: ${JSON.stringify(expected)}\nActual: ${JSON.stringify(actual)}`);
         }
     }
 
-    console.log(`\n${passedTests} passed, ${failedTests} failed`);
-    return failedTests === 0;
-}
+    function assertTrue(condition, message) {
+        if (!condition) {
+            throw new Error(message);
+        }
+    }
+
+    function runTests() {
+        console.log('Running preprocessor.js tests...');
+        passedTests = 0;
+        failedTests = 0;
+
+        for (const { name, fn } of tests) {
+            try {
+                fn();
+                console.log(`✓ ${name}`);
+                passedTests++;
+            } catch (error) {
+                console.error(`✗ ${name}`);
+                console.error(`  ${error.message}`);
+                failedTests++;
+            }
+        }
+
+        console.log(`${passedTests} passed, ${failedTests} failed`);
+        return { passed: passedTests, failed: failedTests, success: failedTests === 0 };
+    }
 
 // Tests
 
@@ -115,17 +118,13 @@ test('PreprocessText: invoice example', () => {
                  'Should handle invoice text correctly');
 });
 
-// Run tests if in browser
-if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', () => {
-        const success = runTests();
-        if (!success) {
-            console.error('Some tests failed!');
-        }
-    });
-}
+    // Register with test registry
+    if (typeof window !== 'undefined' && window.TestRegistry) {
+        window.TestRegistry.register('Preprocessor', { run: runTests });
+    }
 
-// Export for Node.js testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { test, runTests, assertEquals, assertTrue };
-}
+    // Export for Node.js testing
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { test, runTests, assertEquals, assertTrue };
+    }
+})();

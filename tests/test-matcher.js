@@ -3,53 +3,56 @@
  * Tests word matching functionality
  */
 
-const tests = [];
-let passedTests = 0;
-let failedTests = 0;
+(function() {
+    const tests = [];
+    let passedTests = 0;
+    let failedTests = 0;
 
-function test(name, fn) {
-    tests.push({ name, fn });
-}
-
-function assertEquals(actual, expected, message) {
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-        throw new Error(`${message}\nExpected: ${JSON.stringify(expected)}\nActual: ${JSON.stringify(actual)}`);
+    function test(name, fn) {
+        tests.push({ name, fn });
     }
-}
 
-function assertTrue(condition, message) {
-    if (!condition) {
-        throw new Error(message);
-    }
-}
-
-function runTests() {
-    console.log('Running matcher.js tests...\n');
-
-    for (const { name, fn } of tests) {
-        try {
-            fn();
-            console.log(`✓ ${name}`);
-            passedTests++;
-        } catch (error) {
-            console.error(`✗ ${name}`);
-            console.error(`  ${error.message}`);
-            failedTests++;
+    function assertEquals(actual, expected, message) {
+        if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+            throw new Error(`${message}\nExpected: ${JSON.stringify(expected)}\nActual: ${JSON.stringify(actual)}`);
         }
     }
 
-    console.log(`\n${passedTests} passed, ${failedTests} failed`);
-    return failedTests === 0;
-}
+    function assertTrue(condition, message) {
+        if (!condition) {
+            throw new Error(message);
+        }
+    }
 
-// Helper to count match types
-function countMatchTypes(matches) {
-    return {
-        exact: matches.filter(m => m[3] === 'exact').length,
-        gt_only: matches.filter(m => m[3] === 'gt_only').length,
-        ocr_only: matches.filter(m => m[3] === 'ocr_only').length
-    };
-}
+    function runTests() {
+        console.log('Running matcher.js tests...');
+        passedTests = 0;
+        failedTests = 0;
+
+        for (const { name, fn } of tests) {
+            try {
+                fn();
+                console.log(`✓ ${name}`);
+                passedTests++;
+            } catch (error) {
+                console.error(`✗ ${name}`);
+                console.error(`  ${error.message}`);
+                failedTests++;
+            }
+        }
+
+        console.log(`${passedTests} passed, ${failedTests} failed`);
+        return { passed: passedTests, failed: failedTests, success: failedTests === 0 };
+    }
+
+    // Helper to count match types
+    function countMatchTypes(matches) {
+        return {
+            exact: matches.filter(m => m[3] === 'exact').length,
+            gt_only: matches.filter(m => m[3] === 'gt_only').length,
+            ocr_only: matches.filter(m => m[3] === 'ocr_only').length
+        };
+    }
 
 // Tests for matchWords
 
@@ -175,17 +178,13 @@ test('Annotations: assigns match IDs', () => {
     assertTrue(annotations[0].match_id.startsWith('match_'), 'Match ID should have correct format');
 });
 
-// Run tests if in browser
-if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', () => {
-        const success = runTests();
-        if (!success) {
-            console.error('Some tests failed!');
-        }
-    });
-}
+    // Register with test registry
+    if (typeof window !== 'undefined' && window.TestRegistry) {
+        window.TestRegistry.register('Matcher', { run: runTests });
+    }
 
-// Export for Node.js testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { test, runTests, assertEquals, assertTrue };
-}
+    // Export for Node.js testing
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { test, runTests, assertEquals, assertTrue };
+    }
+})();

@@ -3,44 +3,47 @@
  * Tests metrics calculation functionality
  */
 
-const tests = [];
-let passedTests = 0;
-let failedTests = 0;
+(function() {
+    const tests = [];
+    let passedTests = 0;
+    let failedTests = 0;
 
-function test(name, fn) {
-    tests.push({ name, fn });
-}
-
-function assertEquals(actual, expected, message) {
-    if (Math.abs(actual - expected) > 0.001) { // Allow small floating point differences
-        throw new Error(`${message}\nExpected: ${expected}\nActual: ${actual}`);
+    function test(name, fn) {
+        tests.push({ name, fn });
     }
-}
 
-function assertTrue(condition, message) {
-    if (!condition) {
-        throw new Error(message);
-    }
-}
-
-function runTests() {
-    console.log('Running metrics.js tests...\n');
-
-    for (const { name, fn } of tests) {
-        try {
-            fn();
-            console.log(`✓ ${name}`);
-            passedTests++;
-        } catch (error) {
-            console.error(`✗ ${name}`);
-            console.error(`  ${error.message}`);
-            failedTests++;
+    function assertEquals(actual, expected, message) {
+        if (Math.abs(actual - expected) > 0.001) { // Allow small floating point differences
+            throw new Error(`${message}\nExpected: ${expected}\nActual: ${actual}`);
         }
     }
 
-    console.log(`\n${passedTests} passed, ${failedTests} failed`);
-    return failedTests === 0;
-}
+    function assertTrue(condition, message) {
+        if (!condition) {
+            throw new Error(message);
+        }
+    }
+
+    function runTests() {
+        console.log('Running metrics.js tests...');
+        passedTests = 0;
+        failedTests = 0;
+
+        for (const { name, fn } of tests) {
+            try {
+                fn();
+                console.log(`✓ ${name}`);
+                passedTests++;
+            } catch (error) {
+                console.error(`✗ ${name}`);
+                console.error(`  ${error.message}`);
+                failedTests++;
+            }
+        }
+
+        console.log(`${passedTests} passed, ${failedTests} failed`);
+        return { passed: passedTests, failed: failedTests, success: failedTests === 0 };
+    }
 
 // Tests
 
@@ -219,17 +222,13 @@ test('Metrics: empty input', () => {
     assertEquals(metrics.avg_crr, 0.0, 'CRR should be 0.0 for empty input');
 });
 
-// Run tests if in browser
-if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', () => {
-        const success = runTests();
-        if (!success) {
-            console.error('Some tests failed!');
-        }
-    });
-}
+    // Register with test registry
+    if (typeof window !== 'undefined' && window.TestRegistry) {
+        window.TestRegistry.register('Metrics', { run: runTests });
+    }
 
-// Export for Node.js testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { test, runTests, assertEquals, assertTrue };
-}
+    // Export for Node.js testing
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = { test, runTests, assertEquals, assertTrue };
+    }
+})();
