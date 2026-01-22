@@ -81,11 +81,23 @@ function displayManualResults(data) {
     // Show results section
     document.getElementById('manual-results').style.display = 'block';
 
-    // Display metrics in table
-    document.getElementById('precision-value').textContent = Utils.formatPercentage(metrics.precision);
-    document.getElementById('recall-value').textContent = Utils.formatPercentage(metrics.recall);
-    document.getElementById('f1-value').textContent = Utils.formatPercentage(metrics.f1_score);
-    document.getElementById('crr-value').textContent = Utils.formatPercentage(metrics.avg_crr);
+    // Display metrics in table with tooltips
+    const precisionCell = document.getElementById('precision-value');
+    precisionCell.textContent = Utils.formatPercentage(metrics.precision);
+    MetricsUtils.applyTooltip(precisionCell, 'precision', metrics);
+
+    const recallCell = document.getElementById('recall-value');
+    recallCell.textContent = Utils.formatPercentage(metrics.recall);
+    MetricsUtils.applyTooltip(recallCell, 'recall', metrics);
+
+    const f1Cell = document.getElementById('f1-value');
+    f1Cell.textContent = Utils.formatPercentage(metrics.f1_score);
+    MetricsUtils.applyTooltip(f1Cell, 'f1_score', metrics);
+
+    const crrCell = document.getElementById('crr-value');
+    crrCell.textContent = Utils.formatPercentage(metrics.avg_crr);
+    MetricsUtils.applyTooltip(crrCell, 'avg_crr', metrics);
+
     document.getElementById('exact-matches').textContent = metrics.exact_matches;
     document.getElementById('total-gt').textContent = metrics.total_gt_words;
     document.getElementById('total-ocr').textContent = metrics.total_ocr_words;

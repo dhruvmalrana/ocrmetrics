@@ -58,10 +58,11 @@ function calculateMetrics(matches) {
     }
 
     // Calculate CRR (Character Recognition Rate = 1 - CER)
+    // CRR can be negative if OCR produces more errors than GT characters
     let avgCrr = 0.0;
     if (totalGtChars > 0) {
         const cer = totalCharErrors / totalGtChars;
-        avgCrr = Math.max(0.0, 1.0 - cer); // Ensure non-negative
+        avgCrr = 1.0 - cer;
     }
 
     return {
@@ -73,7 +74,10 @@ function calculateMetrics(matches) {
         total_gt_words: totalGtWords,
         total_ocr_words: totalOcrWords,
         unmatched_gt: gtOnlyMatches.length,
-        unmatched_ocr: ocrOnlyMatches.length
+        unmatched_ocr: ocrOnlyMatches.length,
+        // Additional data for tooltips
+        char_errors: totalCharErrors,
+        total_gt_chars: totalGtChars
     };
 }
 
@@ -96,3 +100,76 @@ function formatMetricsForDisplay(metrics) {
         unmatched_ocr: metrics.unmatched_ocr
     };
 }
+
+/**
+ * Metrics utility functions for tooltips and display.
+ * Attached to window for global access.
+ */
+window.MetricsUtils = {
+    /**
+     * Generate tooltip text showing how a metric was calculated.
+     *
+     * @param {string} metricName - Name of the metric ('precision', 'recall', 'f1_score', 'avg_crr')
+     * @param {Object} metrics - Metrics object from calculateMetrics()
+     * @returns {string} Tooltip text with formula and calculation
+     */
+    getTooltip(metricName, metrics) {
+        const exact = metrics.exact_matches;
+        const totalGt = metrics.total_gt_words;
+        const totalOcr = metrics.total_ocr_words;
+        const charErrors = metrics.char_errors;
+        const totalGtChars = metrics.total_gt_chars;
+
+        switch (metricName) {
+            case 'precision':
+                return `Precision = Exact Matches / Total OCR Words\n= ${exact} / ${totalOcr}\n= ${(metrics.precision * 100).toFixed(2)}%`;
+
+            case 'recall':
+                return `Recall = Exact Matches / Total GT Words\n= ${exact} / ${totalGt}\n= ${(metrics.recall * 100).toFixed(2)}%`;
+
+            case 'f1_score':
+                const p = (metrics.precision * 100).toFixed(2);
+                const r = (metrics.recall * 100).toFixed(2);
+                return `F1 Score = 2 × (Precision × Recall) / (Precision + Recall)\n= 2 × (${p}% × ${r}%) / (${p}% + ${r}%)\n= ${(metrics.f1_score * 100).toFixed(2)}%`;
+
+            case 'avg_crr':
+                const cer = totalGtChars > 0 ? (charErrors / totalGtChars * 100).toFixed(2) : '0.00';
+                return `CRR = 1 - (Character Errors / Total GT Chars)\n= 1 - (${charErrors} / ${totalGtChars})\n= 1 - ${cer}%\n= ${(metrics.avg_crr * 100).toFixed(2)}%`;
+
+            default:
+                return '';
+        }
+    },
+
+    /**
+     * Apply tooltip to an existing DOM element.
+     *
+     * @param {HTMLElement} element - The DOM element to add tooltip to
+     * @param {string} metricName - Name of the metric
+     * @param {Object} metrics - Metrics object from calculateMetrics()
+     */
+    applyTooltip(element, metricName, metrics) {
+        element.classList.add('metric-with-tooltip');
+
+        // Create tooltip element
+        const tooltip = document.createElement('div');
+        tooltip.className = 'metric-tooltip';
+        tooltip.textContent = this.getTooltip(metricName, metrics);
+        element.appendChild(tooltip);
+    },
+
+    /**
+     * Create a table cell with metric value and tooltip.
+     *
+     * @param {number} value - The metric value (0.0-1.0)
+     * @param {string} metricName - Name of the metric
+     * @param {Object} metrics - Metrics object from calculateMetrics()
+     * @returns {HTMLTableCellElement} The created td element
+     */
+    createMetricCell(value, metricName, metrics) {
+        const td = document.createElement('td');
+        td.textContent = Utils.formatPercentage(value);
+        this.applyTooltip(td, metricName, metrics);
+        return td;
+    }
+};

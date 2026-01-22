@@ -158,18 +158,18 @@ window.TableRenderer = {
 
         const metrics = result.metrics;
 
-        // Metrics columns (conditional)
+        // Metrics columns (conditional) with tooltips
         if (this.visibleColumns.has('precision')) {
-            tr.appendChild(this.createMetricCell(metrics.precision));
+            tr.appendChild(MetricsUtils.createMetricCell(metrics.precision, 'precision', metrics));
         }
         if (this.visibleColumns.has('recall')) {
-            tr.appendChild(this.createMetricCell(metrics.recall));
+            tr.appendChild(MetricsUtils.createMetricCell(metrics.recall, 'recall', metrics));
         }
         if (this.visibleColumns.has('f1')) {
-            tr.appendChild(this.createMetricCell(metrics.f1_score));
+            tr.appendChild(MetricsUtils.createMetricCell(metrics.f1_score, 'f1_score', metrics));
         }
         if (this.visibleColumns.has('crr')) {
-            tr.appendChild(this.createMetricCell(metrics.avg_crr));
+            tr.appendChild(MetricsUtils.createMetricCell(metrics.avg_crr, 'avg_crr', metrics));
         }
         if (this.visibleColumns.has('exact')) {
             const td = document.createElement('td');
@@ -178,12 +178,6 @@ window.TableRenderer = {
         }
 
         return tr;
-    },
-
-    createMetricCell(value) {
-        const td = document.createElement('td');
-        td.textContent = Utils.formatPercentage(value);
-        return td;
     },
 
     createDetailRow(result, index) {

@@ -237,11 +237,9 @@ const Examples = {
             modelTd.innerHTML = `${medal}<strong>${result.model_name}</strong>`;
             tr.appendChild(modelTd);
 
-            // Metrics
+            // Metrics with tooltips (using shared MetricsUtils)
             ['precision', 'recall', 'f1_score', 'avg_crr'].forEach(metric => {
-                const td = document.createElement('td');
-                td.textContent = Utils.formatPercentage(result.metrics[metric]);
-                tr.appendChild(td);
+                tr.appendChild(MetricsUtils.createMetricCell(result.metrics[metric], metric, result.metrics));
             });
 
             // Exact matches

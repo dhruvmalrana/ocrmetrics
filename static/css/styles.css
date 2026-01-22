@@ -826,6 +826,40 @@ textarea:focus {
     color: #2c3e50;
 }
 
+/* Metric tooltip styling */
+.metric-with-tooltip {
+    position: relative;
+    cursor: default;
+}
+
+.metric-with-tooltip:hover {
+    background-color: #e8f4f8;
+}
+
+.metric-tooltip {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2c3e50;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    white-space: pre-line;
+    z-index: 1000;
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    text-align: left;
+    line-height: 1.6;
+}
+
+.metric-with-tooltip:hover .metric-tooltip {
+    display: block;
+}
+
 .expand-btn {
     background: #3498db;
     color: white;
