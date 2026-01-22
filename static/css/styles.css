@@ -617,30 +617,26 @@ textarea:focus {
     position: relative;
     transition: all 0.2s ease;
     cursor: pointer;
+    padding: 2px 4px;
+    border: 2px solid transparent;
+    border-radius: 3px;
 }
 
 .word.no-match {
     background-color: #ffcdd2;
-    padding: 2px 4px;
-    border-radius: 3px;
 }
 
 /* Hover highlighting styles */
 .word.hover-source {
     background-color: #ffd700 !important;  /* Gold highlight */
     color: #000;
-    padding: 2px 4px;
-    border-radius: 3px;
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
-    font-weight: bold;
     z-index: 10;
 }
 
 .word.hover-target {
     background-color: #87ceeb !important;  /* Sky blue highlight */
     color: #000;
-    padding: 2px 4px;
-    border-radius: 3px;
     box-shadow: 0 0 8px rgba(135, 206, 235, 0.6);
     z-index: 5;
 }
@@ -656,28 +652,22 @@ textarea:focus {
 
 /* Border highlights for all instances of the same word */
 .word.hover-same-panel {
-    border: 2px solid #ffd700;  /* Gold border for same panel */
-    padding: 1px 3px;
-    border-radius: 3px;
+    border-color: #ffd700;  /* Gold border for same panel */
     box-shadow: 0 0 4px rgba(255, 215, 0, 0.3);
 }
 
 .word.hover-other-panel {
-    border: 2px solid #87ceeb;  /* Blue border for other panel */
-    padding: 1px 3px;
-    border-radius: 3px;
+    border-color: #87ceeb;  /* Blue border for other panel */
     box-shadow: 0 0 4px rgba(135, 206, 235, 0.3);
 }
 
 /* Ensure border highlights work with existing match-type colors */
 .word.no-match.hover-same-panel {
-    border: 2px solid #ffd700;
-    padding: 1px 3px;
+    border-color: #ffd700;
 }
 
 .word.no-match.hover-other-panel {
-    border: 2px solid #87ceeb;
-    padding: 1px 3px;
+    border-color: #87ceeb;
 }
 
 /* Legend */

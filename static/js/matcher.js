@@ -111,6 +111,7 @@ function createAnnotations(wordData, matches, isGroundTruth = true) {
                     edit_distance: editDist,
                     match_type: matchType,
                     match_id: matchType === 'exact' ? `match_${idx}` : null,
+                    order: idx,  // Track original order for first-to-first matching
                     used: false  // Track if this match has been consumed
                 });
             }
@@ -127,6 +128,7 @@ function createAnnotations(wordData, matches, isGroundTruth = true) {
                     edit_distance: editDist,
                     match_type: matchType,
                     match_id: matchType === 'exact' ? `match_${idx}` : null,
+                    order: idx,  // Track original order for first-to-first matching
                     used: false  // Track if this match has been consumed
                 });
             }
@@ -142,24 +144,33 @@ function createAnnotations(wordData, matches, isGroundTruth = true) {
 
         if (normalized in matchMap) {
             // Find the next available (unused) match for this word
-            // Prefer exact matches, then fuzzy, then only matches
+            // Prefer exact matches, then only matches, with first-to-first ordering
             const availableMatches = matchMap[normalized].filter(m => !m.used);
 
             let matchInfo;
             if (availableMatches.length > 0) {
-                // Sort by match quality: exact > only
-                const matchPriority = {'exact': 0, 'gt_only': 1, 'ocr_only': 1};
-                availableMatches.sort((a, b) =>
-                    (matchPriority[a.match_type] || 2) - (matchPriority[b.match_type] || 2)
-                );
+                // Prioritize exact matches over only matches (first-to-first ordering)
+                // First, try to find an exact match (prefer lower order for first-to-first)
+                const exactMatches = availableMatches
+                    .filter(m => m.match_type === 'exact')
+                    .sort((a, b) => a.order - b.order);
 
-                // Use the best available match
-                matchInfo = availableMatches[0];
+                if (exactMatches.length > 0) {
+                    matchInfo = exactMatches[0];
+                } else {
+                    // No exact match available, use first only match (sorted by order)
+                    const onlyMatches = availableMatches.sort((a, b) => a.order - b.order);
+                    matchInfo = onlyMatches[0];
+                }
                 matchInfo.used = true; // Mark as consumed
             } else {
-                // All matches for this word have been used
-                // Use the last match (reuse it)
-                matchInfo = matchMap[normalized][matchMap[normalized].length - 1];
+                // All matches for this word have been used - mark as unmatched
+                matchInfo = {
+                    match_type: isGroundTruth ? 'gt_only' : 'ocr_only',
+                    matched_with: null,
+                    edit_distance: null,
+                    match_id: null
+                };
             }
 
             annotations.push({

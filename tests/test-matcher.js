@@ -178,6 +178,37 @@ test('Annotations: assigns match IDs', () => {
     assertTrue(annotations[0].match_id.startsWith('match_'), 'Match ID should have correct format');
 });
 
+test('Annotations: first-to-first matching with duplicates', () => {
+    // GT has 2 'the's, OCR has 1 'the'
+    // The first 'the' in GT should match with the 'the' in OCR
+    const gtWordData = [
+        { normalized: 'the', original: 'The', position: 0 },
+        { normalized: 'cat', original: 'cat', position: 1 },
+        { normalized: 'the', original: 'the', position: 2 }
+    ];
+    const ocrWordData = [
+        { normalized: 'the', original: 'The', position: 0 },
+        { normalized: 'cat', original: 'cat', position: 1 }
+    ];
+
+    const matches = matchWords(['the', 'cat', 'the'], ['the', 'cat']);
+
+    const gtAnnotations = createAnnotations(gtWordData, matches, true);
+    const ocrAnnotations = createAnnotations(ocrWordData, matches, false);
+
+    // First 'The' in GT should have a match_id (exact match)
+    assertTrue(gtAnnotations[0].match_id !== null, 'First The in GT should be matched');
+    assertEquals(gtAnnotations[0].match_type, 'exact', 'First The in GT should be exact match');
+
+    // Second 'the' in GT should NOT have a match_id (gt_only)
+    assertEquals(gtAnnotations[2].match_id, null, 'Second the in GT should be unmatched');
+    assertEquals(gtAnnotations[2].match_type, 'gt_only', 'Second the in GT should be gt_only');
+
+    // The in OCR should have the same match_id as first The in GT
+    assertEquals(ocrAnnotations[0].match_id, gtAnnotations[0].match_id,
+        'OCR The should match with first GT The');
+});
+
     // Register with test registry
     if (typeof window !== 'undefined' && window.TestRegistry) {
         window.TestRegistry.register('Matcher', { run: runTests });
