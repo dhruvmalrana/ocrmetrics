@@ -54,6 +54,38 @@ document.addEventListener('DOMContentLoaded', function() {
     examplesModeBtn.addEventListener('click', function() {
         switchMode(examplesModeBtn, examplesMode);
     });
+
+    // Configuration sidebar controls
+    const configToggleBtn = document.getElementById('config-toggle-btn');
+    const configSidebar = document.getElementById('config-sidebar');
+    const configCloseBtn = document.getElementById('config-close-btn');
+    const configOverlay = document.getElementById('config-overlay');
+
+    function openConfigSidebar() {
+        configSidebar.classList.add('open');
+        configOverlay.classList.add('show');
+    }
+
+    function closeConfigSidebar() {
+        configSidebar.classList.remove('open');
+        configOverlay.classList.remove('show');
+    }
+
+    // Open sidebar when gear icon is clicked
+    configToggleBtn.addEventListener('click', openConfigSidebar);
+
+    // Close sidebar when close button is clicked
+    configCloseBtn.addEventListener('click', closeConfigSidebar);
+
+    // Close sidebar when overlay is clicked
+    configOverlay.addEventListener('click', closeConfigSidebar);
+
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && configSidebar.classList.contains('open')) {
+            closeConfigSidebar();
+        }
+    });
 });
 
 // Utility functions

@@ -19,22 +19,32 @@
             <button id="manual-mode-btn" class="mode-btn">Manual Input</button>
             <button id="batch-mode-btn" class="mode-btn">Batch Upload</button>
             <button id="examples-mode-btn" class="mode-btn">Examples</button>
+            <button id="config-toggle-btn" class="config-toggle-btn" title="Configuration">⚙️</button>
         </div>
 
-        <!-- Configuration Panel -->
-        <div class="config-panel">
-            <h3>Configuration</h3>
-            <div class="config-row">
-                <label>
+        <!-- Configuration Sidebar (collapsed by default) -->
+        <div id="config-sidebar" class="config-sidebar">
+            <div class="config-sidebar-header">
+                <h3>⚙️ Configuration</h3>
+                <button id="config-close-btn" class="config-close-btn" title="Close">×</button>
+            </div>
+            <div class="config-sidebar-content">
+                <label class="config-label">
                     <input type="checkbox" id="case-sensitive" />
-                    Case Sensitive
+                    <span>Case Sensitive</span>
                 </label>
-                <label>
+                <label class="config-label">
                     <input type="checkbox" id="ignore-punctuation" checked />
-                    Ignore Punctuation
+                    <span>Ignore Punctuation</span>
                 </label>
+                <div class="config-info">
+                    <small>Changes apply to all modes</small>
+                </div>
             </div>
         </div>
+
+        <!-- Overlay for sidebar -->
+        <div id="config-overlay" class="config-overlay"></div>
 
         <!-- How It Works Mode -->
         <div id="howto-mode" class="mode-content active">
