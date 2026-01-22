@@ -5,9 +5,29 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const analyzeBtn = document.getElementById('analyze-btn');
+    const vizExpandBtn = document.getElementById('viz-expand-btn');
 
     analyzeBtn.addEventListener('click', handleAnalyze);
+    vizExpandBtn.addEventListener('click', toggleVisualization);
 });
+
+function toggleVisualization() {
+    const detailRow = document.getElementById('manual-detail-row');
+    const expandBtn = document.getElementById('viz-expand-btn');
+
+    if (detailRow.style.display === 'none') {
+        detailRow.style.display = 'table-row';
+        expandBtn.textContent = '−';
+
+        // Initialize hover highlighter when shown
+        if (typeof HoverHighlighter !== 'undefined') {
+            setTimeout(() => HoverHighlighter.initialize(), 0);
+        }
+    } else {
+        detailRow.style.display = 'none';
+        expandBtn.textContent = '+';
+    }
+}
 
 async function handleAnalyze() {
     const groundTruth = document.getElementById('ground-truth').value;
@@ -61,17 +81,14 @@ function displayManualResults(data) {
     // Show results section
     document.getElementById('manual-results').style.display = 'block';
 
-    // Display metrics
+    // Display metrics in table
     document.getElementById('precision-value').textContent = Utils.formatPercentage(metrics.precision);
     document.getElementById('recall-value').textContent = Utils.formatPercentage(metrics.recall);
     document.getElementById('f1-value').textContent = Utils.formatPercentage(metrics.f1_score);
     document.getElementById('crr-value').textContent = Utils.formatPercentage(metrics.avg_crr);
-
-    // Display details
     document.getElementById('exact-matches').textContent = metrics.exact_matches;
     document.getElementById('total-gt').textContent = metrics.total_gt_words;
     document.getElementById('total-ocr').textContent = metrics.total_ocr_words;
-    document.getElementById('unmatched-words').textContent = metrics.unmatched_gt + metrics.unmatched_ocr;
 
     // Display visualizations
     displayVisualization('gt-visualization', gt_annotations);
@@ -105,9 +122,4 @@ function displayVisualization(containerId, annotations) {
 
         container.appendChild(span);
     });
-
-    // Initialize hover highlighter after rendering
-    if (typeof HoverHighlighter !== 'undefined') {
-        HoverHighlighter.initialize();
-    }
 }

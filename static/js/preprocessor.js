@@ -112,7 +112,7 @@ function preprocessText(text, config) {
                 normalizedWords.push(normalized);
                 wordData.push({
                     normalized: normalized,
-                    original: original,
+                    original: part,
                     position: normalizedWords.length - 1  // Position in normalized list
                 });
             }

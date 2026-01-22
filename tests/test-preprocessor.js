@@ -97,7 +97,7 @@ test('PreprocessText: full pipeline', () => {
 
     assertEquals(result.words, ['hello', 'world'], 'Words should be normalized');
     assertTrue(result.wordData.length === 2, 'Should have 2 word data entries');
-    assertEquals(result.wordData[0].original, 'Hello,', 'Should preserve original');
+    assertEquals(result.wordData[0].original, 'Hello', 'Should preserve original part');
     assertEquals(result.wordData[0].normalized, 'hello', 'Should have normalized');
 });
 

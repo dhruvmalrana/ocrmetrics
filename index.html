@@ -125,21 +125,49 @@
             <div class="input-section">
                 <div class="input-column">
                     <h3>Ground Truth</h3>
-                    <textarea id="ground-truth" placeholder="Enter ground truth text...">Invoice Number: INV-2024-001
-Date: January 15, 2024
-Customer: Acme Corporation
-Amount Due: $1,250.00
-Payment Terms: Net 30
-Description: Consulting Services</textarea>
+                    <textarea id="ground-truth" placeholder="Enter ground truth text...">MEDICAL LABORATORY REPORT
+Patient: Elizabeth M. Thompson (DOB: 03/15/1978)
+MRN: 4521-8876-3390
+Collection Date: December 12, 2024 at 08:45 AM
+Ordering Physician: Dr. James R. Patterson, MD
+
+COMPLETE BLOOD COUNT (CBC)
+WBC: 7.2 x10^9/L (Reference: 4.5-11.0)
+RBC: 4.85 x10^12/L (Reference: 4.0-5.5)
+Hemoglobin: 14.2 g/dL (Reference: 12.0-16.0)
+Hematocrit: 42.1% (Reference: 36-46%)
+Platelet Count: 245 x10^9/L (Reference: 150-400)
+
+METABOLIC PANEL
+Glucose (Fasting): 98 mg/dL (Reference: 70-100)
+Creatinine: 0.92 mg/dL (Reference: 0.6-1.2)
+eGFR: >60 mL/min/1.73m²
+Total Cholesterol: 187 mg/dL (Reference: <200)
+HDL Cholesterol: 62 mg/dL (Reference: >40)
+LDL Cholesterol: 108 mg/dL (Reference: <100)</textarea>
                 </div>
                 <div class="input-column">
                     <h3>OCR Output</h3>
-                    <textarea id="ocr-output" placeholder="Enter OCR output text...">Invoice Number: INV-2O24-001
-Date: January 15, 2024
-Customer: Acme Corporation
-Amount Due: $1,25O.OO
-Payment Terms: Net 30
-Description: Consulting Services</textarea>
+                    <textarea id="ocr-output" placeholder="Enter OCR output text...">MEDICAL LAB0RATORY REP0RT
+Patient: E1izabeth M. Thompson (DOB: O3/15/1978)
+MRN: 4521-8876-339O
+Collection Date: December l2, 2024 at 08:45 AM
+Ordering Physician: Dr. James R. Patterson, MD
+
+COMPLETE BL00D COUNT (CBC)
+WBC: 7.2 xlO^9/L (Reference: 4.5-ll.O)
+RBC: 4.85 xlO^l2/L (Reference: 4.O-5.5)
+Hemog1obin: l4.2 g/dL (Reference: l2.O-l6.O)
+Hematocrit: 42.l% (Reference: 36-46%)
+P1atelet Count: 245 xlO^9/L (Reference: l5O-4OO)
+
+METAB0LIC PANEL
+G1ucose (Fasting): 98 mg/dL (Reference: 7O-lOO)
+Creatinine: O.92 mg/dL (Reference: O.6-l.2)
+eGFR: >6O mL/min/l.73m²
+Tota1 Cho1estero1: l87 mg/dL (Reference: <2OO)
+HDL Cho1estero1: 62 mg/dL (Reference: >4O)
+LDL Cho1estero1: lO8 mg/dL (Reference: <lOO)</textarea>
                 </div>
             </div>
 
@@ -150,87 +178,80 @@ Description: Consulting Services</textarea>
             <div id="manual-results" class="results-section" style="display: none;">
                 <h3>Results</h3>
 
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Precision</div>
-                        <div class="metric-value" id="precision-value">-</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Recall</div>
-                        <div class="metric-value" id="recall-value">-</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">F1 Score</div>
-                        <div class="metric-value" id="f1-value">-</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Avg CRR</div>
-                        <div class="metric-value" id="crr-value">-</div>
-                    </div>
-                </div>
-
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <span>Exact Matches:</span>
-                        <span id="exact-matches">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span>Total GT Words:</span>
-                        <span id="total-gt">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span>Total OCR Words:</span>
-                        <span id="total-ocr">-</span>
-                    </div>
-                    <div class="detail-item">
-                        <span>Unmatched Words:</span>
-                        <span id="unmatched-words">-</span>
-                    </div>
-                </div>
-
-                <div class="visualization-section">
-                    <div class="viz-column">
-                        <h4>Ground Truth (Annotated)</h4>
-                        <div id="gt-visualization" class="text-viz"></div>
-                    </div>
-                    <div class="viz-column">
-                        <h4>OCR Output (Annotated)</h4>
-                        <div id="ocr-visualization" class="text-viz"></div>
-                    </div>
-                </div>
-
-                <div class="legend">
-                    <h4>Legend</h4>
-                    <div class="legend-items">
-                        <div class="legend-item">
-                            <span class="legend-color exact-match"></span>
-                            <span>Exact Match (no highlight)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color no-match"></span>
-                            <span>No Match (red)</span>
-                        </div>
-                    </div>
-                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Hover Highlighting</h4>
-                    <div class="legend-items">
-                        <div class="legend-item">
-                            <span class="legend-color hover-gold"></span>
-                            <span>Hovered word (gold background)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color hover-blue"></span>
-                            <span>Matched counterpart (blue background)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color border-gold"></span>
-                            <span>Same word, same panel (gold border)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color border-blue"></span>
-                            <span>Same word, other panel (blue border)</span>
-                        </div>
-                    </div>
-                </div>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1 Score</th>
+                            <th>Avg CRR</th>
+                            <th>Exact Matches</th>
+                            <th>GT Words</th>
+                            <th>OCR Words</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-row">
+                            <td><button id="viz-expand-btn" class="expand-btn">+</button></td>
+                            <td id="precision-value">-</td>
+                            <td id="recall-value">-</td>
+                            <td id="f1-value">-</td>
+                            <td id="crr-value">-</td>
+                            <td id="exact-matches">-</td>
+                            <td id="total-gt">-</td>
+                            <td id="total-ocr">-</td>
+                        </tr>
+                        <tr id="manual-detail-row" class="detail-row" style="display: none;">
+                            <td colspan="8">
+                                <div class="detail-content">
+                                    <div class="visualization-section">
+                                        <div class="viz-column">
+                                            <h4>Ground Truth (Annotated)</h4>
+                                            <div id="gt-visualization" class="text-viz"></div>
+                                        </div>
+                                        <div class="viz-column">
+                                            <h4>OCR Output (Annotated)</h4>
+                                            <div id="ocr-visualization" class="text-viz"></div>
+                                        </div>
+                                    </div>
+                                    <div class="legend">
+                                        <h4>Legend</h4>
+                                        <div class="legend-items">
+                                            <div class="legend-item">
+                                                <span class="legend-color exact-match"></span>
+                                                <span>Exact Match (no highlight)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color no-match"></span>
+                                                <span>No Match (red)</span>
+                                            </div>
+                                        </div>
+                                        <h4 style="margin-top: 20px; margin-bottom: 10px;">Hover Highlighting</h4>
+                                        <div class="legend-items">
+                                            <div class="legend-item">
+                                                <span class="legend-color hover-gold"></span>
+                                                <span>Hovered word (gold background)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color hover-blue"></span>
+                                                <span>Matched counterpart (blue background)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color border-gold"></span>
+                                                <span>Same word, same panel (gold border)</span>
+                                            </div>
+                                            <div class="legend-item">
+                                                <span class="legend-color border-blue"></span>
+                                                <span>Same word, other panel (blue border)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
