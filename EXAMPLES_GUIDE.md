@@ -2,13 +2,13 @@
 
 ## Overview
 
-The OCR Metrics app now includes two new features:
+The OCR Metrics app includes two demonstration features:
 1. **Prepopulated Manual Input** - Demo text is preloaded in manual mode
 2. **Examples Tab** - Dedicated tab with click-to-load example datasets
 
 ## Manual Input Mode
 
-The manual input textareas now come prepopulated with a sample invoice comparison showing common OCR errors (0 vs O confusion). Users can clear this and enter their own text or use it as a starting point.
+The manual input textareas come prepopulated with a sample invoice comparison showing common OCR errors (0 vs O confusion). Users can clear this and enter their own text or use it as a starting point.
 
 ## Examples Tab
 
@@ -17,6 +17,7 @@ The manual input textareas now come prepopulated with a sample invoice compariso
 1. **Examples Folder Structure**:
    ```
    examples/
+   ├── examples.json                   # Metadata index (REQUIRED)
    ├── sample_invoice/
    │   ├── preview.png or preview.jpg  # Preview image (REQUIRED)
    │   ├── gt.txt                      # Ground truth
@@ -28,59 +29,92 @@ The manual input textareas now come prepopulated with a sample invoice compariso
        └── model_out.txt
    ```
 
-2. **Adding New Examples**:
-   - Create a new folder in `examples/`
-   - Add a `preview.png` or `preview.jpg` image (screenshot/photo of the document)
-   - Add `gt.txt` with ground truth text
-   - Add one or more `*_out.txt` files with OCR outputs
-   - The example will automatically appear in the UI
-
-3. **Using Examples**:
+2. **Using Examples**:
    - Click on the **"Examples"** tab
-   - Browse the available examples
+   - Browse the available examples (loaded from `examples.json`)
    - Click on any example card
-   - The app automatically loads and analyzes the files
+   - The app automatically fetches and analyzes the files
    - Results appear in the comparison table below
 
 ### File Naming Convention
 
+- **Metadata Index**: `examples/examples.json` (REQUIRED - see format below)
 - **Ground Truth**: Must be named `gt.txt`
 - **OCR Outputs**: Must end with `_out.txt` (e.g., `tesseract_out.txt`, `gpt4_vision_out.txt`)
-- **Preview Image**: Must be named `preview.png`, `preview.jpg`, or `preview.jpeg` (all formats supported)
+- **Preview Image**: Must be named `preview.png`, `preview.jpg`, or `preview.jpeg`
 
-### Example Provided
+### Adding New Examples
 
-A sample invoice example is included in `examples/sample_invoice/`:
-- Shows common OCR errors (0 vs O in numbers)
-- Compares two OCR models (Tesseract vs EasyOCR)
-- **Note**: You need to add a `preview.png` image to this folder
+1. **Create the folder structure**:
+   ```bash
+   mkdir examples/my_example
+   ```
+
+2. **Add your files**:
+   - `examples/my_example/preview.png` - Preview image
+   - `examples/my_example/gt.txt` - Ground truth text
+   - `examples/my_example/model1_out.txt` - OCR output(s)
+
+3. **Update `examples/examples.json`**:
+   ```json
+   {
+     "examples": [
+       {
+         "name": "my_example",
+         "preview_file": "preview.png",
+         "has_gt": true,
+         "output_files": ["model1_out.txt", "model2_out.txt"]
+       }
+     ]
+   }
+   ```
+
+4. **Refresh the page** - your example appears in the Examples tab!
+
+### `examples.json` Format
+
+```json
+{
+  "examples": [
+    {
+      "name": "example_folder_name",
+      "preview_file": "preview.png",
+      "has_gt": true,
+      "output_files": ["tesseract_out.txt", "easyocr_out.txt"]
+    }
+  ]
+}
+```
+
+**Fields:**
+- `name`: Folder name in `examples/` directory
+- `preview_file`: Image filename (png, jpg, or jpeg)
+- `has_gt`: Set to `true` if `gt.txt` exists
+- `output_files`: Array of OCR output filenames
 
 ## Technical Implementation
 
-### Backend (app.py)
-- `GET /api/examples` - Lists all available examples
-- `GET /api/examples/<name>/preview` - Serves preview images
-- `GET /api/examples/<name>/load` - Loads example text files
+### Client-Side Architecture
 
-### Frontend
-- `static/js/examples.js` - Handles example loading and display
-- Auto-loads examples when batch mode is opened
-- Creates interactive cards with preview images
-- Automatically triggers batch analysis when clicked
+This is a **static site** - all processing happens in the browser:
 
-### Styling
+**`static/js/examples.js`**:
+- `Examples.initialize()`: Fetches `examples/examples.json`
+- `renderExamples()`: Creates interactive cards with preview images
+- `loadExample()`: Fetches files from example folder using Fetch API
+- `analyzeExampleFiles()`: Processes files client-side (same as batch mode)
+- `displayExampleResults()`: Renders comparison table with expandable rows
+
+**File Loading**:
+- Metadata: `fetch('examples/examples.json')`
+- Preview images: `examples/{name}/{preview_file}`
+- Text files: `examples/{name}/{filename}` loaded via Fetch API
+
+**UI Features**:
 - Responsive grid layout
 - Hover effects on cards
 - Metadata display (number of models)
-- Warning indicators for missing files
-
-## Adding Your Own Examples
-
-1. Create a folder: `examples/my_example/`
-2. Add your PNG preview image: `examples/my_example/preview.png`
-3. Add ground truth: `examples/my_example/gt.txt`
-4. Add OCR outputs: `examples/my_example/model1_out.txt`, etc.
-5. Refresh the page - your example will appear automatically!
+- Expandable detail rows with hover highlighting
 
 ## Tips
 
@@ -88,3 +122,4 @@ A sample invoice example is included in `examples/sample_invoice/`:
 - Preview images help users understand what the example contains
 - Include at least 2 OCR models for meaningful comparison
 - Keep example texts concise for better demonstration
+- Always update `examples.json` when adding new examples

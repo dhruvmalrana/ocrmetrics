@@ -91,48 +91,84 @@ async function handleBatchAnalyze() {
     // Get configuration
     const config = AppConfig.getConfig();
 
-    // Create FormData
-    const formData = new FormData();
-
-    uploadedFiles.forEach(file => {
-        formData.append(file.name, file);
-    });
-
-    // Add config to form data
-    formData.append('case_sensitive', config.case_sensitive);
-    formData.append('ignore_punctuation', config.ignore_punctuation);
-    formData.append('edit_distance_threshold', config.edit_distance_threshold);
-
     // Show loading
     Utils.showLoading();
     Utils.hideError();
 
     try {
-        // Call API
-        const response = await fetch('/api/batch-analyze', {
-            method: 'POST',
-            body: formData
-        });
+        // Read all files
+        const fileContents = await readAllFiles(uploadedFiles);
 
-        const data = await response.json();
-
-        if (!data.success) {
-            throw new Error(data.error || 'Batch analysis failed');
+        // Find ground truth
+        if (!fileContents['gt.txt']) {
+            throw new Error('Ground truth file (gt.txt) not found');
         }
 
-        // Show any warnings/errors
-        if (data.errors && data.errors.length > 0) {
-            console.warn('Warnings:', data.errors);
+        const groundTruth = fileContents['gt.txt'];
+
+        // Find all model output files
+        const modelFiles = Object.keys(fileContents).filter(name => name.endsWith('_out.txt'));
+
+        if (modelFiles.length === 0) {
+            throw new Error('No model output files found (must end with _out.txt)');
+        }
+
+        // Process each model
+        const results = [];
+        for (const modelFile of modelFiles) {
+            const modelName = modelFile.replace('_out.txt', '');
+            const ocrOutput = fileContents[modelFile];
+
+            // Process text
+            const gtResult = preprocessText(groundTruth, config);
+            const ocrResult = preprocessText(ocrOutput, config);
+
+            // Match words (exact matching only)
+            const matches = matchWords(gtResult.words, ocrResult.words);
+
+            // Calculate metrics
+            const metrics = calculateMetrics(matches);
+
+            // Create annotations
+            const gtAnnotations = createAnnotations(gtResult.wordData, matches, true);
+            const ocrAnnotations = createAnnotations(ocrResult.wordData, matches, false);
+
+            results.push({
+                model_name: modelName,
+                metrics: metrics,
+                gt_annotations: gtAnnotations,
+                ocr_annotations: ocrAnnotations
+            });
         }
 
         // Display results
-        displayBatchResults(data.results);
+        displayBatchResults(results);
 
     } catch (error) {
         Utils.showError(`Error: ${error.message}`);
     } finally {
         Utils.hideLoading();
     }
+}
+
+async function readAllFiles(files) {
+    const fileContents = {};
+
+    for (const file of files) {
+        const text = await readFileAsText(file);
+        fileContents[file.name] = text;
+    }
+
+    return fileContents;
+}
+
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(new Error('Failed to read file: ' + file.name));
+        reader.readAsText(file);
+    });
 }
 
 function displayBatchResults(results) {

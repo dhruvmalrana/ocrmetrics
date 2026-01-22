@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OCR Metrics Evaluator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
     <div class="container">
@@ -56,7 +56,8 @@
                 <ul>
                     <li>Words are preprocessed (case normalization, punctuation removal based on config)</li>
                     <li>Only <strong>exact matches</strong> count toward Precision and Recall</li>
-                    <li>Character errors are calculated using <strong>Levenshtein edit distance</strong></li>
+                    <li>Exact matches = 0 character errors (words are identical)</li>
+                    <li>Unmatched words = all characters count as errors</li>
                 </ul>
 
                 <h4>Metrics Explained</h4>
@@ -79,8 +80,8 @@
                     <div class="metric-desc">
                         <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy
                         <br><code>CRR = 1 - (Character Errors / Total GT Characters)</code>
-                        <br><em>Example: GT "hello" vs OCR "helo" → 1 error / 5 chars = 80% CRR</em>
-                        <br>Character errors = edit distances for matched words + all chars in unmatched words
+                        <br><em>Exact matches have 0 errors (identical words)</em>
+                        <br>Character errors = 0 for exact matches + all chars in unmatched GT words + all chars in unmatched OCR words
                     </div>
                 </div>
 
@@ -383,11 +384,17 @@ Description: Consulting Services</textarea>
         <div id="error-message" class="error-message" style="display: none;"></div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/hover-highlighter.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/manual-mode.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/batch-mode.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/table.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/examples.js') }}"></script>
+    <!-- Core backend logic -->
+    <script src="static/js/preprocessor.js"></script>
+    <script src="static/js/matcher.js"></script>
+    <script src="static/js/metrics.js"></script>
+
+    <!-- Application scripts -->
+    <script src="static/js/app.js"></script>
+    <script src="static/js/hover-highlighter.js"></script>
+    <script src="static/js/manual-mode.js"></script>
+    <script src="static/js/batch-mode.js"></script>
+    <script src="static/js/table.js"></script>
+    <script src="static/js/examples.js"></script>
 </body>
 </html>

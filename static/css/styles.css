@@ -690,13 +690,6 @@ textarea:focus {
     cursor: pointer;
 }
 
-.word.fuzzy-match {
-    background-color: #e1bee7;
-    padding: 2px 4px;
-    border-radius: 3px;
-    cursor: help;
-}
-
 .word.no-match {
     background-color: #ffcdd2;
     padding: 2px 4px;
@@ -724,12 +717,10 @@ textarea:focus {
 }
 
 /* Ensure hover effects work with existing match-type colors */
-.word.fuzzy-match.hover-source,
 .word.no-match.hover-source {
     background-color: #ffd700 !important;
 }
 
-.word.fuzzy-match.hover-target,
 .word.no-match.hover-target {
     background-color: #87ceeb !important;
 }
@@ -750,13 +741,11 @@ textarea:focus {
 }
 
 /* Ensure border highlights work with existing match-type colors */
-.word.fuzzy-match.hover-same-panel,
 .word.no-match.hover-same-panel {
     border: 2px solid #ffd700;
     padding: 1px 3px;
 }
 
-.word.fuzzy-match.hover-other-panel,
 .word.no-match.hover-other-panel {
     border: 2px solid #87ceeb;
     padding: 1px 3px;
@@ -796,10 +785,6 @@ textarea:focus {
 
 .legend-color.exact-match {
     background: white;
-}
-
-.legend-color.fuzzy-match {
-    background: #e1bee7;
 }
 
 .legend-color.no-match {

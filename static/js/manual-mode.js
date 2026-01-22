@@ -27,27 +27,26 @@ async function handleAnalyze() {
     Utils.hideError();
 
     try {
-        // Call API
-        const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                ground_truth: groundTruth,
-                ocr_output: ocrOutput,
-                config: config
-            })
-        });
+        // Process text using client-side backend
+        const gtResult = preprocessText(groundTruth, config);
+        const ocrResult = preprocessText(ocrOutput, config);
 
-        const data = await response.json();
+        // Match words (exact matching only)
+        const matches = matchWords(gtResult.words, ocrResult.words);
 
-        if (!data.success) {
-            throw new Error(data.error || 'Analysis failed');
-        }
+        // Calculate metrics
+        const metrics = calculateMetrics(matches);
+
+        // Create annotations
+        const gtAnnotations = createAnnotations(gtResult.wordData, matches, true);
+        const ocrAnnotations = createAnnotations(ocrResult.wordData, matches, false);
 
         // Display results
-        displayManualResults(data);
+        displayManualResults({
+            metrics: metrics,
+            gt_annotations: gtAnnotations,
+            ocr_annotations: ocrAnnotations
+        });
 
     } catch (error) {
         Utils.showError(`Error: ${error.message}`);
@@ -94,10 +93,8 @@ function displayVisualization(containerId, annotations) {
         if (annotation.match_type === 'exact') {
             // No class for exact matches (normal text)
             span.className = 'word';
-        } else if (annotation.match_type === 'fuzzy') {
-            span.className = 'word fuzzy-match';
-            span.title = `Matched with: ${annotation.matched_with} (edit distance: ${annotation.edit_distance})`;
-        } else if (annotation.match_type === 'gt_only' || annotation.match_type === 'ocr_only') {
+        } else {
+            // All non-exact matches are shown as no-match (red)
             span.className = 'word no-match';
         }
 

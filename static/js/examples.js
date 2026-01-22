@@ -15,20 +15,17 @@ const Examples = {
     },
 
     /**
-     * Load available examples from the server
+     * Load available examples from static JSON file
      */
     async loadExamples() {
         try {
-            const response = await fetch('/api/examples');
+            const response = await fetch('examples/examples.json');
             const data = await response.json();
 
-            if (data.success) {
-                this.examples = data.examples;
-            } else {
-                console.error('Failed to load examples:', data.error);
-            }
+            this.examples = data.examples || [];
         } catch (error) {
             console.error('Error loading examples:', error);
+            this.examples = [];
         }
     },
 
@@ -72,7 +69,7 @@ const Examples = {
         const modelsText = modelCount === 1 ? '1 model' : `${modelCount} models`;
 
         card.innerHTML = `
-            <img src="${example.preview_url}" alt="${displayName}">
+            <img src="examples/${example.name}/${example.preview_file}" alt="${displayName}">
             <div class="example-card-info">
                 <div class="example-card-title">${displayName}</div>
                 <div class="example-card-meta">
@@ -94,26 +91,27 @@ const Examples = {
             Utils.showLoading();
             Utils.hideError();
 
-            // Load example files from server
-            const response = await fetch(`/api/examples/${exampleName}/load`);
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to load example');
+            // Find example metadata
+            const example = this.examples.find(ex => ex.name === exampleName);
+            if (!example) {
+                throw new Error('Example not found');
             }
 
-            // Convert file contents to File objects for the batch analyzer
-            const files = [];
-            const fileContents = data.files;
+            // Load all text files from the example folder
+            const fileContents = {};
 
-            for (const [filename, content] of Object.entries(fileContents)) {
-                const blob = new Blob([content], { type: 'text/plain' });
-                const file = new File([blob], filename, { type: 'text/plain' });
-                files.push(file);
+            // Load ground truth
+            const gtResponse = await fetch(`examples/${exampleName}/gt.txt`);
+            fileContents['gt.txt'] = await gtResponse.text();
+
+            // Load all output files
+            for (const outputFile of example.output_files) {
+                const response = await fetch(`examples/${exampleName}/${outputFile}`);
+                fileContents[outputFile] = await response.text();
             }
 
             // Trigger batch analysis with example files
-            await this.analyzeExampleFiles(files);
+            await this.analyzeExampleFiles(fileContents);
 
         } catch (error) {
             Utils.showError(`Error loading example: ${error.message}`);
@@ -123,37 +121,50 @@ const Examples = {
     },
 
     /**
-     * Analyze example files using the batch processor
+     * Analyze example files using client-side processing
      */
-    async analyzeExampleFiles(files) {
+    async analyzeExampleFiles(fileContents) {
         try {
-            // Create FormData with example files
-            const formData = new FormData();
-            files.forEach(file => {
-                // Use filename as the key so backend can iterate over all files
-                formData.append(file.name, file);
-            });
+            // Get ground truth
+            const groundTruth = fileContents['gt.txt'];
+            if (!groundTruth) {
+                throw new Error('Ground truth not found');
+            }
 
             // Get configuration
             const config = AppConfig.getConfig();
-            formData.append('case_sensitive', config.case_sensitive);
-            formData.append('ignore_punctuation', config.ignore_punctuation);
-            formData.append('edit_distance_threshold', config.edit_distance_threshold);
 
-            // Call batch analyze API
-            const response = await fetch('/api/batch-analyze', {
-                method: 'POST',
-                body: formData
-            });
+            // Process each model
+            const results = [];
+            for (const [filename, content] of Object.entries(fileContents)) {
+                if (!filename.endsWith('_out.txt')) continue;
 
-            const data = await response.json();
+                const modelName = filename.replace('_out.txt', '');
 
-            if (!data.success) {
-                throw new Error(data.error || 'Analysis failed');
+                // Process text
+                const gtResult = preprocessText(groundTruth, config);
+                const ocrResult = preprocessText(content, config);
+
+                // Match words (exact matching only)
+                const matches = matchWords(gtResult.words, ocrResult.words);
+
+                // Calculate metrics
+                const metrics = calculateMetrics(matches);
+
+                // Create annotations
+                const gtAnnotations = createAnnotations(gtResult.wordData, matches, true);
+                const ocrAnnotations = createAnnotations(ocrResult.wordData, matches, false);
+
+                results.push({
+                    model_name: modelName,
+                    metrics: metrics,
+                    gt_annotations: gtAnnotations,
+                    ocr_annotations: ocrAnnotations
+                });
             }
 
             // Display results in examples mode container
-            this.displayExampleResults(data.results);
+            this.displayExampleResults(results);
 
             // Show results section
             document.getElementById('examples-results').style.display = 'block';
@@ -315,10 +326,8 @@ const Examples = {
 
             if (annotation.match_type === 'exact') {
                 span.className = 'word';
-            } else if (annotation.match_type === 'fuzzy') {
-                span.className = 'word fuzzy-match';
-                span.title = `Matched with: ${annotation.matched_with} (edit distance: ${annotation.edit_distance})`;
             } else {
+                // All non-exact matches are shown as no-match (red)
                 span.className = 'word no-match';
             }
 

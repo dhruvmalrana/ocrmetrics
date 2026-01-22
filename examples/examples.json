@@ -1,0 +1,37 @@
+{
+  "examples": [
+    {
+      "name": "15ed2e2d627d9efd",
+      "preview_file": "15ed2e2d627d9efd.jpg",
+      "has_gt": true,
+      "output_files": [
+        "deepseek_out.txt",
+        "parseq_out.txt",
+        "qwen2_5_out.txt",
+        "qwen3_out.txt"
+      ]
+    },
+    {
+      "name": "1b65c71e3f3a12f5",
+      "preview_file": "1b65c71e3f3a12f5.jpg",
+      "has_gt": true,
+      "output_files": [
+        "deepseek_out.txt",
+        "parseq_out.txt",
+        "qwen2.5_out.txt",
+        "qwen3_out.txt"
+      ]
+    },
+    {
+      "name": "1e0936a669a69c45",
+      "preview_file": "1e0936a669a69c45.jpg",
+      "has_gt": true,
+      "output_files": [
+        "deepseek_out.txt",
+        "parseq_out.txt",
+        "qwen2_5_out.txt",
+        "qwen3_out.txt"
+      ]
+    }
+  ]
+}

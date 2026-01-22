@@ -1,501 +1,257 @@
 # OCR Metrics Evaluator
 
-A web application for evaluating OCR (Optical Character Recognition) output quality by calculating word-level precision, recall, Character Recognition Rate (CRR), and providing visual highlighting of differences.
+A client-side web application for evaluating OCR (Optical Character Recognition) output quality. Calculate word-level precision, recall, F1 score, and Character Recognition Rate (CRR) with interactive visualizations.
+
+**✨ Runs entirely in your browser - no server needed!**
 
 ## Features
 
-- **Four Modes**:
-  - **How It Works**: Comprehensive guide to understanding the metrics and methodology
-  - **Manual Input**: Quick single comparison with prepopulated examples
-  - **Batch Upload**: Compare multiple OCR models against ground truth
-  - **Examples**: Click-to-load curated example datasets with preview images
+- **Three Evaluation Modes**:
+  - **Manual Input**: Quick single comparison with examples
+  - **Batch Upload**: Compare multiple OCR models at once
+  - **Examples**: Pre-loaded datasets with preview images
 
 - **Standard OCR Metrics**:
-  - Word-level Precision and Recall (exact matches only - standard WER approach)
-  - Document-level Character Recognition Rate (CRR) - standard CER approach
+  - Word-level Precision and Recall (exact matches only)
+  - Document-level Character Recognition Rate (CRR)
   - F1 Score for balanced evaluation
 
-- **Exact Word Matching**:
-  - Only exact matches count toward precision/recall
-  - Order-invariant comparison
-  - Configurable preprocessing (case, punctuation)
+- **Interactive Visualizations**:
+  - Color-coded highlighting (red = unmatched words)
+  - Hover over words to see matches across panels
+  - Expandable comparison tables
 
-- **Interactive Visual Highlighting**:
-  - Color-coded text visualization (red for unmatched words)
-  - **Hover Highlighting**: Hover over any word to see:
-    - **Gold background**: The word you're hovering over
-    - **Blue background**: Its matched counterpart in the other panel
-    - **Gold border**: Other instances of the same word in the same panel
-    - **Blue border**: Other instances of the same word in the other panel
-  - Makes it easy to understand which words matched between ground truth and OCR output
-
-- **Batch Comparison**:
-  - Compare multiple OCR models simultaneously
-  - Automatic ranking by F1 Score with top 3 medals (🥇🥈🥉)
-  - Sortable comparison table
-  - Expandable row details with visualizations
-  - Hover highlighting in batch mode too
-  - Configurable column visibility
+- **Batch Comparison Features**:
+  - Automatic ranking with medals (🥇🥈🥉)
   - CSV export
+  - Configurable column visibility
 
-- **Examples Library**:
-  - Pre-loaded example datasets with preview images
-  - Click any example card to instantly load and analyze
-  - Add your own examples by dropping files in the `examples/` folder
-  - Automatic detection and display of new examples
+## Quick Start
 
-## Installation
+### Run Locally
 
-### Prerequisites
-- Python 3.7 or higher
-- Conda (Miniconda or Anaconda) - **Recommended** for environment isolation
-
-### Quick Start with Conda (Recommended)
-
-The project comes with a conda environment already set up!
-
-1. Clone the repository:
 ```bash
-git clone git@github.com:dhruvmalrana/ocrmetrics.git
+# 1. Clone the repo
+git clone https://github.com/YOUR_USERNAME/ocrmetrics.git
 cd ocrmetrics
+
+# 2. Start local server
+python3 -m http.server 8000
+
+# 3. Open browser
+open http://localhost:8000/
 ```
 
-2. Activate the conda environment:
+That's it! No dependencies, no build process.
+
+### Deploy to GitHub Pages
+
 ```bash
-conda activate ocrmetrics
+# Push to GitHub
+git add .
+git commit -m "Initial commit"
+git push origin main
+
+# Enable GitHub Pages:
+# Go to repo Settings → Pages → Source: "GitHub Actions"
+# Site will be live at: https://YOUR_USERNAME.github.io/ocrmetrics/
 ```
 
-3. Run the application:
-```bash
-# Option 1: Use the run script (recommended - automatically handles port cleanup)
-./run.sh
-
-# Option 2: Run directly
-python app.py
-```
-
-4. Open your browser to:
-```
-http://localhost:5001
-```
-
-**Note**: The run script automatically kills any old process using port 5001, so you can just run `./run.sh` each time without worrying about port conflicts.
-
-### Manual Setup (Alternative)
-
-If you prefer not to use conda:
-
-1. Clone the repository:
-```bash
-git clone git@github.com:dhruvmalrana/ocrmetrics.git
-cd ocrmetrics
-```
-
-2. Create a virtual environment (optional but recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Run the application:
-```bash
-python app.py
-```
-
-## Testing
-
-The project includes comprehensive unit tests for all core logic.
-
-**IMPORTANT**: Tests must be run within the `ocrmetrics` conda environment.
-
-### Running Tests
-
-First, activate the conda environment:
-```bash
-conda activate ocrmetrics
-```
-
-Then run the tests:
-```bash
-# Option 1: Use the test runner script (automatically activates conda)
-./run_tests.sh
-
-# Option 2: Run tests directly (make sure conda is activated first!)
-python -m unittest discover -s tests -p "test_*.py" -v
-
-# Option 3: Run specific test file
-python -m unittest tests.test_metrics -v
-```
-
-### Test Coverage
-
-- **test_utils.py**: Levenshtein distance and CRR calculation
-- **test_preprocessor.py**: Tokenization, normalization, and text preprocessing
-- **test_matcher.py**: Word matching algorithm (exact and fuzzy)
-- **test_metrics.py**: Precision, recall, F1 score, and CRR metrics
-
-All core algorithms are thoroughly tested with edge cases including:
-- Empty inputs
-- Duplicate words
-- Case sensitivity
-- Punctuation handling
-- Fuzzy matching thresholds
-- Zero division scenarios
+See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
 ## Usage
 
-### How It Works Tab
-
-1. Click "How It Works" tab (default landing page)
-2. Read comprehensive explanations of:
-   - What metrics are calculated and why
-   - How the matching algorithm works
-   - Visual examples of calculations
-   - Best practices for OCR evaluation
-
 ### Manual Input Mode
 
-1. Click "Manual Input" tab
-2. Example text is prepopulated (invoice with OCR errors) - you can use it or clear it
-3. Enter your own ground truth text in the left textarea
-4. Enter your own OCR output text in the right textarea
-5. Adjust configuration:
-   - **Case Sensitive**: Whether 'Hello' and 'hello' are different
-   - **Ignore Punctuation**: Whether to strip punctuation before matching
-6. Click "Analyze"
-7. View metrics and color-coded visualization
-8. **Hover over any word** to see:
-   - What it matched with (gold = source, blue = target)
-   - All other instances of the same word (with borders)
+1. Click **"Manual Input"** tab
+2. Enter ground truth and OCR output (or use the example)
+3. Adjust settings (case sensitivity, punctuation)
+4. Click **"Analyze"**
+5. View metrics and hover over words to see matches
 
 ### Batch Upload Mode
 
-1. Click "Batch Upload" tab
-2. Prepare your files:
-   - **gt.txt**: Ground truth text
-   - **<model_name>_out.txt**: OCR outputs (e.g., `tesseract_out.txt`, `google_vision_out.txt`)
-3. Upload files via drag-and-drop or click to browse
-4. Adjust configuration settings
-5. Click "Analyze All"
-6. View comparison table:
-   - Results automatically sorted by F1 Score (highest first)
-   - Top 3 models highlighted with medals: 🥇 Champion, 🥈 2nd Place, 🥉 3rd Place
-   - Click column headers to re-sort
-   - Toggle column visibility with checkboxes
-   - Click "+" button to expand row and see detailed visualization
-   - **Hover over words** in expanded view to see matches
-   - Click "Export as CSV" to download results
+1. Click **"Batch Upload"** tab
+2. Upload files:
+   - `gt.txt` - Ground truth
+   - `model_name_out.txt` - OCR outputs (e.g., `tesseract_out.txt`)
+3. Click **"Analyze All"**
+4. View ranked comparison table
+5. Click **"+"** to expand details
+6. Export to CSV if needed
 
-### Examples Tab
+### Examples Mode
 
-1. Click "Examples" tab
-2. Browse available example datasets with preview images
-3. Click on any example card to:
-   - Automatically load all files (ground truth + OCR outputs)
-   - Analyze and display results instantly
-   - View comparison table with rankings
-4. Expand rows to see detailed visualizations with hover highlighting
+1. Click **"Examples"** tab
+2. Click any example card
+3. Results display automatically
 
-#### Adding Your Own Examples
+## Metrics Explained
 
-Want to add your own example datasets? It's easy!
-
-1. Create a folder in `examples/` with a descriptive name (e.g., `examples/my_receipt/`)
-2. Add these files:
-   - `preview.png` or `preview.jpg` - Preview image of the document
-   - `gt.txt` - Ground truth text
-   - `model1_out.txt`, `model2_out.txt`, etc. - OCR outputs from different models
-3. Refresh the page - your example appears automatically!
-
-**File Naming Rules:**
-- Preview: `preview.png`, `preview.jpg`, or any `.png`/`.jpg` file in the folder
-- Ground Truth: Must be named `gt.txt`
-- OCR Outputs: Must end with `_out.txt` (the prefix becomes the model name)
-
-**Example Structure:**
-```
-examples/
-├── my_invoice/
-│   ├── preview.png
-│   ├── gt.txt
-│   ├── tesseract_out.txt
-│   └── gpt4_vision_out.txt
-└── handwritten_form/
-    ├── preview.jpg
-    ├── gt.txt
-    ├── easyocr_out.txt
-    └── paddleocr_out.txt
-```
-
-## Metrics Explanation
-
-### Word-Level Precision
-
-**Definition**: Of all words in the OCR output, how many are EXACT matches with the ground truth.
-
-**Formula**:
+### Precision
+What % of OCR words are correct?
 ```
 Precision = Exact Matches / Total OCR Words
 ```
+**Example**: OCR outputs "hello world test", GT has "hello world" → 2/3 = 66.67%
 
-**Important**: Only exact matches count (after preprocessing based on case/punctuation settings).
-
-**Example**:
-- Ground Truth: "The quick brown fox"
-- OCR Output: "The quik brown"
-- Exact matches: "The", "brown" = 2
-- Precision = 2/3 = 66.67%
-
-**Interpretation**: High precision = low false positive rate (OCR doesn't add wrong words).
-
-### Word-Level Recall
-
-**Definition**: Of all words in the ground truth, how many are EXACT matches in the OCR output.
-
-**Formula**:
+### Recall
+What % of GT words were found?
 ```
 Recall = Exact Matches / Total GT Words
 ```
-
-**Important**: Only exact matches count (standard WER approach).
-
-**Example**:
-- Ground Truth: "The quick brown fox"
-- OCR Output: "The quik brown"
-- Exact matches: "The", "brown" = 2
-- Recall = 2/4 = 50.00%
-
-**Interpretation**: High recall = low false negative rate (OCR doesn't miss words).
+**Example**: GT has "hello world test", OCR outputs "hello world" → 2/3 = 66.67%
 
 ### F1 Score
-
-**Definition**: Harmonic mean of precision and recall, providing a balanced metric.
-
-**Formula**:
+Balanced metric combining precision and recall
 ```
 F1 = 2 × (Precision × Recall) / (Precision + Recall)
 ```
 
-**Interpretation**: Single metric that balances both precision and recall. Useful for comparing models.
-
-### Character Recognition Rate (CRR)
-
-**Definition**: Document-level character accuracy using standard CER (Character Error Rate) methodology.
-
-**Formula**:
+### CRR (Character Recognition Rate)
+Character-level accuracy
 ```
-Character Errors =
-  + Edit distance for matched word pairs
-  + All characters in unmatched GT words (OCR missed)
-  + All characters in unmatched OCR words (OCR hallucinated)
-
-CER = Character Errors / Total GT Characters
-CRR = 1 - CER
+CRR = 1 - (Character Errors / Total GT Characters)
 ```
+Character errors = all chars in unmatched GT words + all chars in unmatched OCR words
 
-**Important**:
-- CRR uses document-level calculation (not word-level averaging)
-- ALL characters count, including those in unmatched words
-- This is the standard CER approach used in OCR literature
-- CRR = 1 - CER (inverse of Character Error Rate)
-
-**Example**:
-- Ground Truth: "The quick brown fox" (16 characters)
-- OCR Output: "The quik brown" (13 characters)
-- Matched: "The" (0 errors), "brown" (0 errors)
-- Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
-- Unmatched OCR: "quik" (4 chars) = 4 errors
-- Character Errors = 0 + 0 + 8 + 4 = 12
-- CRR = 1 - (12/16) = 25.00%
-
-**Interpretation**: Shows overall character-level accuracy. Unmatched words significantly impact CRR.
-
-## Algorithm Details
-
-### Word Matching Algorithm
-
-The application uses exact word matching with configurable preprocessing:
-
-#### Preprocessing & Matching
-1. **Preprocessing**:
-   - Tokenize text by splitting on whitespace
-   - Apply normalization based on config:
-     - Convert to lowercase if case-insensitive
-     - Strip punctuation if enabled
-   - Count word occurrences (handles duplicates)
-
-2. **Exact Matching**:
-   - For each ground truth word that appears in OCR words:
-     - Match min(GT count, OCR count) instances
-     - Mark as exact matches
-     - **These matches COUNT toward precision/recall**
-   - Remove matched instances from consideration
-
-3. **Result**:
-   - Matched pairs (exact matches only)
-   - Unmatched GT words (false negatives - shown in red)
-   - Unmatched OCR words (false positives - shown in red)
-
-4. **Character Error Calculation**:
-   - For matched pairs: Calculate edit distance at character level
-   - For unmatched words: Count all characters as errors
-   - CRR = 1 - (Total Character Errors / Total GT Characters)
-
-### Levenshtein Edit Distance
-
-The edit distance is the minimum number of single-character operations (insertions, deletions, substitutions) required to transform one word into another.
-
-**Examples**:
-- "cat" → "cat": distance = 0 (exact match)
-- "cat" → "cut": distance = 1 (1 substitution)
-- "hello" → "helo": distance = 1 (1 deletion)
-- "test" → "testing": distance = 3 (3 insertions)
-
-**Implementation**: Uses `python-Levenshtein` library (fast C implementation) with pure Python fallback.
+**Note**: Exact matches contribute 0 errors (since they're identical)
 
 ## Configuration Options
 
-### Case Sensitive
-- **Default**: Unchecked (case-insensitive)
-- **Purpose**: Whether to treat uppercase and lowercase as different
-- **Examples**:
-  - Unchecked: "Hello" = "hello" (match)
-  - Checked: "Hello" ≠ "hello" (no match)
+- **Case Sensitive**: Treat "Hello" and "hello" as different (default: off)
+- **Ignore Punctuation**: Strip punctuation before matching (default: on)
 
-### Ignore Punctuation
-- **Default**: Checked
-- **Purpose**: Whether to remove punctuation before matching
-- **Examples**:
-  - Checked: "word." = "word" (match after stripping '.')
-  - Unchecked: "word." ≠ "word" (different strings)
+## File Format (Batch Mode)
 
-## File Naming Convention (Batch Mode)
+### Required Files
 
-### Ground Truth
-- **Filename**: Must be exactly `gt.txt`
-- **Content**: Reference text to compare against
+**Ground Truth:**
+- Filename: `gt.txt`
+- Content: Reference text
 
-### OCR Outputs
-- **Format**: `<model_name>_out.txt`
-- **Examples**:
-  - `tesseract_out.txt` → Model name: "tesseract"
-  - `google_vision_out.txt` → Model name: "google_vision"
-  - `aws_textract_out.txt` → Model name: "aws_textract"
-- **Content**: OCR output from the corresponding model
+**OCR Outputs:**
+- Format: `<model_name>_out.txt`
+- Examples: `tesseract_out.txt`, `google_vision_out.txt`
+
+### Example Structure
+```
+your_files/
+├── gt.txt                    # Ground truth
+├── tesseract_out.txt         # Model: tesseract
+├── google_vision_out.txt     # Model: google_vision
+└── aws_textract_out.txt      # Model: aws_textract
+```
+
+To test batch mode, you can use files from any `examples/` folder.
+
+## Adding Your Own Examples
+
+1. Create folder: `examples/my_example/`
+2. Add files: `preview.png`, `gt.txt`, `model_out.txt`
+3. Update `examples/examples.json` with example metadata
+4. Refresh page - your example appears!
+
+See [EXAMPLES_GUIDE.md](EXAMPLES_GUIDE.md) for complete instructions and JSON format.
+
+## How It Works
+
+### Matching Algorithm
+
+1. **Preprocessing**:
+   - Tokenize by whitespace
+   - Apply case/punctuation normalization
+   - Count word occurrences
+
+2. **Exact Matching**:
+   - Match identical words (case-insensitive if configured)
+   - Handle duplicates correctly
+   - Only exact matches count toward precision/recall
+
+3. **Character Errors**:
+   - For exact matches: 0 errors (words are identical)
+   - For unmatched GT words: All characters count as errors
+   - For unmatched OCR words: All characters count as errors
+   - CRR = 1 - (Total Errors / Total GT Characters)
+
+## Testing
+
+Run the test suite:
+
+```bash
+# Start test server
+./run-tests.sh
+
+# Or manually
+python3 -m http.server 8000
+open http://localhost:8000/tests/run-tests.html
+```
+
+All core logic is tested:
+- Text preprocessing and normalization
+- Word matching algorithm (exact matching)
+- Metrics calculation (Precision, Recall, F1, CRR)
+
+See [tests/README.md](tests/README.md) for details.
+
+## Technical Details
+
+### Architecture
+
+**Client-Side Only:**
+- No backend server required
+- All processing in JavaScript
+- Works offline after first load
+
+**Core Modules:**
+- `static/js/preprocessor.js` - Text normalization
+- `static/js/matcher.js` - Word matching (exact matching only)
+- `static/js/metrics.js` - Metrics calculation
+
+**UI:**
+- Vanilla JavaScript (no frameworks)
+- Responsive design
+- File upload via FileReader API
+
+### Browser Compatibility
+
+Works in all modern browsers:
+- Chrome/Edge (recommended)
+- Firefox
+- Safari
+- Mobile browsers
 
 ## Color Legend
 
-### Static Colors (Always Visible)
-- **No Highlight (Normal Text)**: Exact match
-- **Red Background**: No match
-  - In Ground Truth: Word not found in OCR output (false negative)
-  - In OCR Output: Word not found in ground truth (false positive)
+**Static Colors:**
+- No highlight = Exact match
+- Red background = No match
 
-### Hover Highlighting (Interactive)
-When you hover over any word:
-- **Gold Background**: The word you're currently hovering over (the source)
-- **Blue Background**: The matched counterpart of the hovered word in the other panel
-- **Gold Border**: Other instances of the same word in the same panel as the hovered word
-- **Blue Border**: Other instances of the same word in the opposite panel from the hovered word
+**Hover Highlighting:**
+- Gold background = Hovered word
+- Blue background = Matched counterpart
+- Gold border = Same word, same panel
+- Blue border = Same word, other panel
 
-This makes it easy to visually trace which words matched between ground truth and OCR output, even when the same word appears multiple times.
+## Example Results
 
-## Technical Architecture
-
-### Backend (Python Flask)
-- **app.py**: Flask application with API endpoints:
-  - `/api/analyze` - Single text comparison (manual mode)
-  - `/api/batch-analyze` - Batch file comparison
-  - `/api/examples` - List available examples
-  - `/api/examples/<name>/preview` - Serve preview images
-  - `/api/examples/<name>/load` - Load example text files
-- **core/preprocessor.py**: Text tokenization and normalization
-- **core/matcher.py**: Word matching algorithm with match ID generation
-- **core/metrics.py**: Precision, recall, CRR, F1 calculation
-- **core/utils.py**: Levenshtein distance implementation
-- **core/file_handler.py**: File upload parsing
-- **core/batch_processor.py**: Multi-model comparison
-
-### Frontend (Vanilla JavaScript)
-- **app.js**: 4-tab mode switching and configuration management
-- **manual-mode.js**: Single text comparison with prepopulated examples
-- **batch-mode.js**: File upload and batch processing
-- **table.js**: Sortable, expandable comparison table
-- **examples.js**: Example library loading and click-to-analyze functionality
-- **hover-highlighter.js**: Interactive hover highlighting for word match visualization
-- **styles.css**: Responsive UI styling with hover effects
-
-## Edge Cases Handled
-
-- **Empty inputs**: Displays appropriate message
-- **All exact matches**: Shows 100% metrics
-- **No matches**: Shows 0% metrics
-- **Duplicate words**: Correctly handles word counts
-- **Punctuation-only differences**: Configurable handling
-- **Case-only differences**: Configurable handling
-- **Unicode characters**: Full support
-- **Large files**: 10MB size limit with validation
-
-## Comparison with Standard OCR Metrics
-
-### Word Error Rate (WER)
-Our **Precision** and **Recall** metrics align with WER methodology:
-- Only exact word matches count
-- No fuzzy matching in word-level metrics
-- Standard approach in speech recognition and OCR evaluation
-
-### Character Error Rate (CER)
-Our **CRR** metric is the inverse of CER:
-- CER measures errors, CRR measures correctness (accuracy)
-- Both use Levenshtein edit distance at character level
-- CRR = 1 - CER = 1 - (Character Errors / Total GT Characters)
-- Standard document-level calculation used in OCR literature
-
-## Example Workflow
-
-### Manual Mode Example
 ```
 Ground Truth: "The quick brown fox"
 OCR Output: "The quik brown"
 
-Configuration:
-- Case Sensitive: No
-- Ignore Punctuation: Yes
+Matching:
+- Exact Matches: "The", "brown" (2 words, 0 errors each)
+- Unmatched GT: "quick" (5 chars), "fox" (3 chars)
+- Unmatched OCR: "quik" (4 chars)
 
 Results:
-- Exact Matches: 2 ("The", "brown")
-- GT Only: 2 ("quick", "fox")
-- OCR Only: 1 ("quik")
-
-Metrics:
-- Precision = 2/3 = 66.67% (exact matches / OCR words)
-- Recall = 2/4 = 50.00% (exact matches / GT words)
-- F1 Score = 57.14%
-- Character errors = 0 (The) + 0 (brown) + 5 (quick) + 3 (fox) + 4 (quik) = 12
-- CRR = 1 - (12/16) = 25.00%
-```
-
-### Batch Mode Example
-```
-Files:
-- gt.txt: "Hello world from Python"
-- tesseract_out.txt: "Hello world from Python"
-- google_vision_out.txt: "Helo world from Python"
-- aws_textract_out.txt: "Hello wrld from Python"
-
-Results Table (sorted by F1 Score):
-┌──────┬────────────────┬───────────┬────────┬──────────┬─────────┐
-│ Rank │ Model          │ Precision │ Recall │ F1 Score │ Avg CRR │
-├──────┼────────────────┼───────────┼────────┼──────────┼─────────┤
-│ 🥇   │ tesseract      │ 100.00%   │ 100%   │ 100.00%  │ 100.00% │
-│ 🥈   │ google_vision  │  75.00%   │  75%   │  75.00%  │  93.75% │
-│ 🥉   │ aws_textract   │  75.00%   │  75%   │  75.00%  │  93.75% │
-└──────┴────────────────┴───────────┴────────┴──────────┴─────────┘
+- Precision: 66.67% (2 exact matches / 3 OCR words)
+- Recall: 50.00% (2 exact matches / 4 GT words)
+- F1 Score: 57.14%
+- CRR: 25.00%
+  - Char errors = 0 (The) + 0 (brown) + 5 (quick) + 3 (fox) + 4 (quik) = 12
+  - Total GT chars = 16
+  - CRR = 1 - (12/16) = 0.25 = 25%
 ```
 
 ## License
@@ -504,10 +260,11 @@ MIT License
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Pull requests welcome! Please include tests for new features.
 
-## Acknowledgments
+## Links
 
-- Uses [python-Levenshtein](https://github.com/maxbachmann/Levenshtein) for fast edit distance calculation
-- Built with [Flask](https://flask.palletsprojects.com/) web framework
-- Inspired by standard OCR evaluation metrics (WER, CER)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Testing Guide](TESTING.md)
+- [Changes Summary](CHANGES.md)
+- [Examples Guide](EXAMPLES_GUIDE.md)

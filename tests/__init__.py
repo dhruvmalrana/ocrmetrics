@@ -1,3 +1,0 @@
-"""
-OCR Metrics Test Suite
-"""

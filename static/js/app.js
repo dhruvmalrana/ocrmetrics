@@ -8,8 +8,7 @@ const AppConfig = {
     getConfig() {
         return {
             case_sensitive: document.getElementById('case-sensitive').checked,
-            ignore_punctuation: document.getElementById('ignore-punctuation').checked,
-            edit_distance_threshold: 0  // Fixed to 0 for exact matching only (standard OCR evaluation)
+            ignore_punctuation: document.getElementById('ignore-punctuation').checked
         };
     }
 };

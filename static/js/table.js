@@ -240,10 +240,8 @@ window.TableRenderer = {
             // Apply CSS class based on match type
             if (annotation.match_type === 'exact') {
                 span.className = 'word';
-            } else if (annotation.match_type === 'fuzzy') {
-                span.className = 'word fuzzy-match';
-                span.title = `Matched with: ${annotation.matched_with} (edit distance: ${annotation.edit_distance})`;
             } else {
+                // All non-exact matches are shown as no-match (red)
                 span.className = 'word no-match';
             }
 
