@@ -208,7 +208,7 @@ window.TableRenderer = {
         gtCol.innerHTML = '<h4>Ground Truth (Annotated)</h4>';
         const gtViz = document.createElement('div');
         gtViz.className = 'text-viz';
-        this.renderAnnotations(gtViz, result.gt_annotations);
+        this.renderAnnotations(gtViz, result.gt_annotations, 'gt');
         gtCol.appendChild(gtViz);
 
         // OCR visualization
@@ -217,7 +217,7 @@ window.TableRenderer = {
         ocrCol.innerHTML = '<h4>OCR Output (Annotated)</h4>';
         const ocrViz = document.createElement('div');
         ocrViz.className = 'text-viz';
-        this.renderAnnotations(ocrViz, result.ocr_annotations);
+        this.renderAnnotations(ocrViz, result.ocr_annotations, 'ocr');
         ocrCol.appendChild(ocrViz);
 
         vizContainer.appendChild(gtCol);
@@ -230,7 +230,7 @@ window.TableRenderer = {
         return tr;
     },
 
-    renderAnnotations(container, annotations) {
+    renderAnnotations(container, annotations, panel) {
         container.innerHTML = '';
 
         annotations.forEach(annotation => {
@@ -247,6 +247,11 @@ window.TableRenderer = {
                 span.className = 'word no-match';
             }
 
+            // Add data attributes for hover highlighting
+            span.dataset.matchId = annotation.match_id || 'unmatched';
+            span.dataset.matchType = annotation.match_type;
+            span.dataset.panel = panel;
+
             container.appendChild(span);
         });
     },
@@ -258,6 +263,14 @@ window.TableRenderer = {
         if (detailRow.style.display === 'none') {
             detailRow.style.display = 'table-row';
             expandBtn.textContent = '−';
+
+            // Initialize hover highlighter for the newly shown visualizations
+            if (typeof HoverHighlighter !== 'undefined') {
+                // Use setTimeout to ensure DOM is fully updated
+                setTimeout(() => {
+                    HoverHighlighter.initialize();
+                }, 0);
+            }
         } else {
             detailRow.style.display = 'none';
             expandBtn.textContent = '+';

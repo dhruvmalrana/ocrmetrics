@@ -3,7 +3,8 @@ Flask application for OCR Metrics evaluation.
 Provides web interface and API endpoints for evaluating OCR output quality.
 """
 
-from flask import Flask, render_template, request, jsonify
+import os
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from core.preprocessor import preprocess_text
 from core.matcher import match_words, create_annotations
 from core.metrics import calculate_metrics, format_metrics_for_display
@@ -158,6 +159,145 @@ def batch_analyze():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@app.route('/api/examples', methods=['GET'])
+def list_examples():
+    """
+    List all available example datasets.
+
+    Returns:
+        JSON: {
+            "success": bool,
+            "examples": [
+                {
+                    "name": str,
+                    "preview_url": str,
+                    "has_gt": bool,
+                    "output_files": [str]
+                }
+            ]
+        }
+    """
+    try:
+        examples_dir = 'examples'
+        examples = []
+
+        if not os.path.exists(examples_dir):
+            return jsonify({'success': True, 'examples': []})
+
+        for example_name in os.listdir(examples_dir):
+            example_path = os.path.join(examples_dir, example_name)
+
+            # Skip if not a directory or if it's the README
+            if not os.path.isdir(example_path) or example_name.startswith('.'):
+                continue
+
+            # Check for preview image (support both PNG and JPG)
+            preview_file = None
+
+            # First, try to find preview.* files
+            for ext in ['.png', '.jpg', '.jpeg']:
+                preview_path = os.path.join(example_path, f'preview{ext}')
+                if os.path.exists(preview_path):
+                    preview_file = f'preview{ext}'
+                    break
+
+            # If no preview.* file found, look for ANY image file
+            if not preview_file:
+                for filename in os.listdir(example_path):
+                    if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                        preview_file = filename
+                        break
+
+            if not preview_file:
+                continue
+
+            gt_path = os.path.join(example_path, 'gt.txt')
+
+            # Find all output files
+            output_files = []
+            for filename in os.listdir(example_path):
+                if filename.endswith('_out.txt'):
+                    output_files.append(filename)
+
+            examples.append({
+                'name': example_name,
+                'preview_url': f'/api/examples/{example_name}/preview',
+                'preview_file': preview_file,
+                'has_gt': os.path.exists(gt_path),
+                'output_files': sorted(output_files)
+            })
+
+        return jsonify({'success': True, 'examples': examples})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/examples/<example_name>/preview', methods=['GET'])
+def get_example_preview(example_name):
+    """Serve the preview image for an example (supports PNG and JPG)."""
+    examples_dir = 'examples'
+    example_path = os.path.join(examples_dir, example_name)
+
+    # First, check for preview.* files
+    for ext in ['.png', '.jpg', '.jpeg']:
+        preview_file = f'preview{ext}'
+        if os.path.exists(os.path.join(example_path, preview_file)):
+            return send_from_directory(example_path, preview_file)
+
+    # If no preview.* file found, look for ANY image file
+    if os.path.exists(example_path):
+        for filename in os.listdir(example_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                return send_from_directory(example_path, filename)
+
+    # If no preview found, return 404
+    return jsonify({'error': 'Preview image not found'}), 404
+
+
+@app.route('/api/examples/<example_name>/load', methods=['GET'])
+def load_example(example_name):
+    """
+    Load an example dataset's text files.
+
+    Returns:
+        JSON: {
+            "success": bool,
+            "files": {
+                "gt.txt": str (content),
+                "model1_out.txt": str (content),
+                ...
+            }
+        }
+    """
+    try:
+        examples_dir = 'examples'
+        example_path = os.path.join(examples_dir, example_name)
+
+        if not os.path.exists(example_path) or not os.path.isdir(example_path):
+            return jsonify({'success': False, 'error': 'Example not found'}), 404
+
+        files = {}
+
+        # Load ground truth
+        gt_path = os.path.join(example_path, 'gt.txt')
+        if os.path.exists(gt_path):
+            with open(gt_path, 'r', encoding='utf-8') as f:
+                files['gt.txt'] = f.read()
+
+        # Load all output files
+        for filename in os.listdir(example_path):
+            if filename.endswith('_out.txt'):
+                file_path = os.path.join(example_path, filename)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    files[filename] = f.read()
+
+        return jsonify({'success': True, 'files': files})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.errorhandler(413)

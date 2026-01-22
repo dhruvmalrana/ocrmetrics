@@ -16,25 +16,43 @@ const AppConfig = {
 
 // Mode switching
 document.addEventListener('DOMContentLoaded', function() {
+    const howtoModeBtn = document.getElementById('howto-mode-btn');
     const manualModeBtn = document.getElementById('manual-mode-btn');
     const batchModeBtn = document.getElementById('batch-mode-btn');
+    const examplesModeBtn = document.getElementById('examples-mode-btn');
+    const howtoMode = document.getElementById('howto-mode');
     const manualMode = document.getElementById('manual-mode');
     const batchMode = document.getElementById('batch-mode');
+    const examplesMode = document.getElementById('examples-mode');
+
+    function switchMode(activeBtn, activeMode) {
+        // Remove active class from all buttons and modes
+        [howtoModeBtn, manualModeBtn, batchModeBtn, examplesModeBtn].forEach(btn => btn.classList.remove('active'));
+        [howtoMode, manualMode, batchMode, examplesMode].forEach(mode => mode.classList.remove('active'));
+
+        // Add active class to selected button and mode
+        activeBtn.classList.add('active');
+        activeMode.classList.add('active');
+    }
+
+    // Switch to how it works mode
+    howtoModeBtn.addEventListener('click', function() {
+        switchMode(howtoModeBtn, howtoMode);
+    });
 
     // Switch to manual mode
     manualModeBtn.addEventListener('click', function() {
-        manualModeBtn.classList.add('active');
-        batchModeBtn.classList.remove('active');
-        manualMode.classList.add('active');
-        batchMode.classList.remove('active');
+        switchMode(manualModeBtn, manualMode);
     });
 
     // Switch to batch mode
     batchModeBtn.addEventListener('click', function() {
-        batchModeBtn.classList.add('active');
-        manualModeBtn.classList.remove('active');
-        batchMode.classList.add('active');
-        manualMode.classList.remove('active');
+        switchMode(batchModeBtn, batchMode);
+    });
+
+    // Switch to examples mode
+    examplesModeBtn.addEventListener('click', function() {
+        switchMode(examplesModeBtn, examplesMode);
     });
 });
 

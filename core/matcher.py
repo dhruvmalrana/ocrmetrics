@@ -109,14 +109,14 @@ def create_annotations(word_data, matches, is_ground_truth=True):
         is_ground_truth (bool): True if annotating GT text, False if OCR text
 
     Returns:
-        list: List of annotation dicts with keys: word, match_type, matched_with, edit_distance
+        list: List of annotation dicts with keys: word, match_type, matched_with, edit_distance, match_id
     """
     # Build a mapping from normalized words to their match information
     # Handle duplicates by tracking available matches
     match_map = {}  # normalized_word -> list of {match_info, used: bool}
 
     if is_ground_truth:
-        for match in matches:
+        for idx, match in enumerate(matches):
             gt_word, ocr_word, edit_dist, match_type = match
             if match_type in ['exact', 'fuzzy', 'gt_only']:
                 if gt_word not in match_map:
@@ -125,10 +125,11 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                     'matched_with': ocr_word,
                     'edit_distance': edit_dist,
                     'match_type': match_type,
+                    'match_id': f'match_{idx}' if match_type in ['exact', 'fuzzy'] else None,
                     'used': False  # Track if this match has been consumed
                 })
     else:
-        for match in matches:
+        for idx, match in enumerate(matches):
             gt_word, ocr_word, edit_dist, match_type = match
             if match_type in ['exact', 'fuzzy', 'ocr_only']:
                 if ocr_word not in match_map:
@@ -137,6 +138,7 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                     'matched_with': gt_word,
                     'edit_distance': edit_dist,
                     'match_type': match_type,
+                    'match_id': f'match_{idx}' if match_type in ['exact', 'fuzzy'] else None,
                     'used': False  # Track if this match has been consumed
                 })
 
@@ -170,7 +172,8 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                 'word': original,  # Use original word, not normalized
                 'match_type': match_info['match_type'],
                 'matched_with': match_info['matched_with'],
-                'edit_distance': match_info['edit_distance']
+                'edit_distance': match_info['edit_distance'],
+                'match_id': match_info['match_id']
             })
         else:
             # No match found - shouldn't happen but handle gracefully
@@ -178,7 +181,8 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                 'word': original,
                 'match_type': 'ocr_only' if not is_ground_truth else 'gt_only',
                 'matched_with': None,
-                'edit_distance': None
+                'edit_distance': None,
+                'match_id': None
             })
 
     return annotations

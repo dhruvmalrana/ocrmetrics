@@ -4,9 +4,11 @@ A web application for evaluating OCR (Optical Character Recognition) output qual
 
 ## Features
 
-- **Dual Input Modes**:
-  - **Manual Input**: Quick single comparison with text boxes
+- **Four Modes**:
+  - **How It Works**: Comprehensive guide to understanding the metrics and methodology
+  - **Manual Input**: Quick single comparison with prepopulated examples
   - **Batch Upload**: Compare multiple OCR models against ground truth
+  - **Examples**: Click-to-load curated example datasets with preview images
 
 - **Standard OCR Metrics**:
   - Word-level Precision and Recall (exact matches only - standard WER approach)
@@ -18,18 +20,29 @@ A web application for evaluating OCR (Optical Character Recognition) output qual
   - Order-invariant comparison
   - Configurable preprocessing (case, punctuation)
 
-- **Visual Highlighting**:
-  - Color-coded text visualization
-  - Red: Unmatched words
-  - Normal text: Exact matches
+- **Interactive Visual Highlighting**:
+  - Color-coded text visualization (red for unmatched words)
+  - **Hover Highlighting**: Hover over any word to see:
+    - **Gold background**: The word you're hovering over
+    - **Blue background**: Its matched counterpart in the other panel
+    - **Gold border**: Other instances of the same word in the same panel
+    - **Blue border**: Other instances of the same word in the other panel
+  - Makes it easy to understand which words matched between ground truth and OCR output
 
 - **Batch Comparison**:
   - Compare multiple OCR models simultaneously
   - Automatic ranking by F1 Score with top 3 medals (🥇🥈🥉)
   - Sortable comparison table
   - Expandable row details with visualizations
+  - Hover highlighting in batch mode too
   - Configurable column visibility
   - CSV export
+
+- **Examples Library**:
+  - Pre-loaded example datasets with preview images
+  - Click any example card to instantly load and analyze
+  - Add your own examples by dropping files in the `examples/` folder
+  - Automatic detection and display of new examples
 
 ## Installation
 
@@ -136,16 +149,29 @@ All core algorithms are thoroughly tested with edge cases including:
 
 ## Usage
 
+### How It Works Tab
+
+1. Click "How It Works" tab (default landing page)
+2. Read comprehensive explanations of:
+   - What metrics are calculated and why
+   - How the matching algorithm works
+   - Visual examples of calculations
+   - Best practices for OCR evaluation
+
 ### Manual Input Mode
 
 1. Click "Manual Input" tab
-2. Enter ground truth text in the left textarea
-3. Enter OCR output text in the right textarea
-4. Adjust configuration:
+2. Example text is prepopulated (invoice with OCR errors) - you can use it or clear it
+3. Enter your own ground truth text in the left textarea
+4. Enter your own OCR output text in the right textarea
+5. Adjust configuration:
    - **Case Sensitive**: Whether 'Hello' and 'hello' are different
    - **Ignore Punctuation**: Whether to strip punctuation before matching
-5. Click "Analyze"
-6. View metrics and color-coded visualization
+6. Click "Analyze"
+7. View metrics and color-coded visualization
+8. **Hover over any word** to see:
+   - What it matched with (gold = source, blue = target)
+   - All other instances of the same word (with borders)
 
 ### Batch Upload Mode
 
@@ -162,7 +188,49 @@ All core algorithms are thoroughly tested with edge cases including:
    - Click column headers to re-sort
    - Toggle column visibility with checkboxes
    - Click "+" button to expand row and see detailed visualization
+   - **Hover over words** in expanded view to see matches
    - Click "Export as CSV" to download results
+
+### Examples Tab
+
+1. Click "Examples" tab
+2. Browse available example datasets with preview images
+3. Click on any example card to:
+   - Automatically load all files (ground truth + OCR outputs)
+   - Analyze and display results instantly
+   - View comparison table with rankings
+4. Expand rows to see detailed visualizations with hover highlighting
+
+#### Adding Your Own Examples
+
+Want to add your own example datasets? It's easy!
+
+1. Create a folder in `examples/` with a descriptive name (e.g., `examples/my_receipt/`)
+2. Add these files:
+   - `preview.png` or `preview.jpg` - Preview image of the document
+   - `gt.txt` - Ground truth text
+   - `model1_out.txt`, `model2_out.txt`, etc. - OCR outputs from different models
+3. Refresh the page - your example appears automatically!
+
+**File Naming Rules:**
+- Preview: `preview.png`, `preview.jpg`, or any `.png`/`.jpg` file in the folder
+- Ground Truth: Must be named `gt.txt`
+- OCR Outputs: Must end with `_out.txt` (the prefix becomes the model name)
+
+**Example Structure:**
+```
+examples/
+├── my_invoice/
+│   ├── preview.png
+│   ├── gt.txt
+│   ├── tesseract_out.txt
+│   └── gpt4_vision_out.txt
+└── handwritten_form/
+    ├── preview.jpg
+    ├── gt.txt
+    ├── easyocr_out.txt
+    └── paddleocr_out.txt
+```
 
 ## Metrics Explanation
 
@@ -322,28 +390,45 @@ The edit distance is the minimum number of single-character operations (insertio
 
 ## Color Legend
 
+### Static Colors (Always Visible)
 - **No Highlight (Normal Text)**: Exact match
 - **Red Background**: No match
   - In Ground Truth: Word not found in OCR output (false negative)
   - In OCR Output: Word not found in ground truth (false positive)
 
+### Hover Highlighting (Interactive)
+When you hover over any word:
+- **Gold Background**: The word you're currently hovering over (the source)
+- **Blue Background**: The matched counterpart of the hovered word in the other panel
+- **Gold Border**: Other instances of the same word in the same panel as the hovered word
+- **Blue Border**: Other instances of the same word in the opposite panel from the hovered word
+
+This makes it easy to visually trace which words matched between ground truth and OCR output, even when the same word appears multiple times.
+
 ## Technical Architecture
 
 ### Backend (Python Flask)
-- **app.py**: Flask application with API endpoints
+- **app.py**: Flask application with API endpoints:
+  - `/api/analyze` - Single text comparison (manual mode)
+  - `/api/batch-analyze` - Batch file comparison
+  - `/api/examples` - List available examples
+  - `/api/examples/<name>/preview` - Serve preview images
+  - `/api/examples/<name>/load` - Load example text files
 - **core/preprocessor.py**: Text tokenization and normalization
-- **core/matcher.py**: Two-phase word matching algorithm
+- **core/matcher.py**: Word matching algorithm with match ID generation
 - **core/metrics.py**: Precision, recall, CRR, F1 calculation
 - **core/utils.py**: Levenshtein distance implementation
 - **core/file_handler.py**: File upload parsing
 - **core/batch_processor.py**: Multi-model comparison
 
 ### Frontend (Vanilla JavaScript)
-- **app.js**: Mode switching and configuration management
-- **manual-mode.js**: Single text comparison
+- **app.js**: 4-tab mode switching and configuration management
+- **manual-mode.js**: Single text comparison with prepopulated examples
 - **batch-mode.js**: File upload and batch processing
 - **table.js**: Sortable, expandable comparison table
-- **styles.css**: Responsive UI styling
+- **examples.js**: Example library loading and click-to-analyze functionality
+- **hover-highlighter.js**: Interactive hover highlighting for word match visualization
+- **styles.css**: Responsive UI styling with hover effects
 
 ## Edge Cases Handled
 

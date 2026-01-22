@@ -13,84 +13,12 @@
             <p class="subtitle">Evaluate OCR output quality with precision, recall, and character recognition rate</p>
         </header>
 
-        <!-- How It Works Section -->
-        <div class="info-panel">
-            <details>
-                <summary><strong>📖 How It Works - Standard OCR Evaluation Metrics</strong></summary>
-                <div class="info-content">
-                    <h4>Evaluation Method</h4>
-                    <p>This tool uses <strong>standard OCR evaluation methodology</strong> with exact word matching:</p>
-                    <ul>
-                        <li>Words are preprocessed (case normalization, punctuation removal based on config)</li>
-                        <li>Only <strong>exact matches</strong> count toward Precision and Recall</li>
-                        <li>Character errors are calculated using <strong>Levenshtein edit distance</strong></li>
-                    </ul>
-
-                    <h4>Metrics Explained</h4>
-                    <div class="metric-explanation">
-                        <div class="metric-desc">
-                            <strong>Precision</strong> What % of OCR words are correct?
-                            <br><code>Precision = Exact Matches / Total OCR Words</code>
-                            <br><em>Example: OCR outputs "hello world test", GT has "hello world" → 2/3 = 66.67%</em>
-                        </div>
-                        <div class="metric-desc">
-                            <strong>Recall</strong> What % of GT words were found?
-                            <br><code>Recall = Exact Matches / Total GT Words</code>
-                            <br><em>Example: GT has "hello world test", OCR outputs "hello world" → 2/3 = 66.67%</em>
-                        </div>
-                        <div class="metric-desc">
-                            <strong>F1 Score</strong> Balanced measure of precision and recall
-                            <br><code>F1 = 2 × (Precision × Recall) / (Precision + Recall)</code>
-                            <br><em>Single metric for comparing OCR models</em>
-                        </div>
-                        <div class="metric-desc">
-                            <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy
-                            <br><code>CRR = 1 - (Character Errors / Total GT Characters)</code>
-                            <br><em>Example: GT "hello" vs OCR "helo" → 1 error / 5 chars = 80% CRR</em>
-                            <br>Character errors = edit distances for matched words + all chars in unmatched words
-                        </div>
-                    </div>
-
-                    <h4>Complete Example</h4>
-                    <div class="example-box">
-                        <p><strong>Ground Truth:</strong> "The quick brown fox"</p>
-                        <p><strong>OCR Output:</strong> "The quik brown"</p>
-                        <hr>
-                        <p><strong>Word Matching:</strong></p>
-                        <ul>
-                            <li>Exact matches: "The", "brown" (2 words match exactly)</li>
-                            <li>Unmatched in GT: "quick", "fox"</li>
-                            <li>Unmatched in OCR: "quik"</li>
-                        </ul>
-                        <p><strong>Metrics:</strong></p>
-                        <ul>
-                            <li><strong>Precision:</strong> 2/3 = 66.67%</li>
-                            <li><strong>Recall:</strong> 2/4 = 50.00%</li>
-                            <li><strong>F1 Score:</strong> 57.14%</li>
-                            <li><strong>CRR:</strong>
-                                <br>• Matched: "The"↔"The" (0 errors), "brown"↔"brown" (0 errors)
-                                <br>• Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
-                                <br>• Unmatched OCR: "quik" (4 chars) = 4 errors
-                                <br>• Total: 12 errors / 16 GT chars = 25% CRR</li>
-                        </ul>
-                    </div>
-
-                    <h4>Quick Reference</h4>
-                    <ul>
-                        <li><strong>High Precision:</strong> OCR doesn't add extra/wrong words</li>
-                        <li><strong>High Recall:</strong> OCR doesn't miss words</li>
-                        <li><strong>High F1:</strong> Good balance of both</li>
-                        <li><strong>High CRR:</strong> Few character-level errors</li>
-                        <li><strong>Color coding:</strong> Normal = exact match, Red = no match</li>
-                    </ul>
-                </div>
-            </details>
-        </div>
-
         <!-- Mode Switcher -->
         <div class="mode-switcher">
-            <button id="manual-mode-btn" class="mode-btn active">Manual Input</button>
+            <button id="howto-mode-btn" class="mode-btn active">How It Works</button>
+            <button id="manual-mode-btn" class="mode-btn">Manual Input</button>
             <button id="batch-mode-btn" class="mode-btn">Batch Upload</button>
+            <button id="examples-mode-btn" class="mode-btn">Examples</button>
         </div>
 
         <!-- Configuration Panel -->
@@ -106,19 +34,101 @@
                     Ignore Punctuation
                 </label>
             </div>
-            <p class="config-note">Note: Metrics use exact word matching only (standard OCR evaluation)</p>
+        </div>
+
+        <!-- How It Works Mode -->
+        <div id="howto-mode" class="mode-content active">
+            <div class="info-content">
+                <h3>📖 Standard OCR Evaluation Metrics</h3>
+
+                <h4>Evaluation Method</h4>
+                <p>This tool uses <strong>standard OCR evaluation methodology</strong> with exact word matching:</p>
+                <ul>
+                    <li>Words are preprocessed (case normalization, punctuation removal based on config)</li>
+                    <li>Only <strong>exact matches</strong> count toward Precision and Recall</li>
+                    <li>Character errors are calculated using <strong>Levenshtein edit distance</strong></li>
+                </ul>
+
+                <h4>Metrics Explained</h4>
+                <div class="metric-explanation">
+                    <div class="metric-desc">
+                        <strong>Precision</strong> What % of OCR words are correct?
+                        <br><code>Precision = Exact Matches / Total OCR Words</code>
+                        <br><em>Example: OCR outputs "hello world test", GT has "hello world" → 2/3 = 66.67%</em>
+                    </div>
+                    <div class="metric-desc">
+                        <strong>Recall</strong> What % of GT words were found?
+                        <br><code>Recall = Exact Matches / Total GT Words</code>
+                        <br><em>Example: GT has "hello world test", OCR outputs "hello world" → 2/3 = 66.67%</em>
+                    </div>
+                    <div class="metric-desc">
+                        <strong>F1 Score</strong> Balanced measure of precision and recall
+                        <br><code>F1 = 2 × (Precision × Recall) / (Precision + Recall)</code>
+                        <br><em>Single metric for comparing OCR models</em>
+                    </div>
+                    <div class="metric-desc">
+                        <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy
+                        <br><code>CRR = 1 - (Character Errors / Total GT Characters)</code>
+                        <br><em>Example: GT "hello" vs OCR "helo" → 1 error / 5 chars = 80% CRR</em>
+                        <br>Character errors = edit distances for matched words + all chars in unmatched words
+                    </div>
+                </div>
+
+                <h4>Complete Example</h4>
+                <div class="example-box">
+                    <p><strong>Ground Truth:</strong> "The quick brown fox"</p>
+                    <p><strong>OCR Output:</strong> "The quik brown"</p>
+                    <hr>
+                    <p><strong>Word Matching:</strong></p>
+                    <ul>
+                        <li>Exact matches: "The", "brown" (2 words match exactly)</li>
+                        <li>Unmatched in GT: "quick", "fox"</li>
+                        <li>Unmatched in OCR: "quik"</li>
+                    </ul>
+                    <p><strong>Metrics:</strong></p>
+                    <ul>
+                        <li><strong>Precision:</strong> 2/3 = 66.67%</li>
+                        <li><strong>Recall:</strong> 2/4 = 50.00%</li>
+                        <li><strong>F1 Score:</strong> 57.14%</li>
+                        <li><strong>CRR:</strong>
+                            <br>• Matched: "The"↔"The" (0 errors), "brown"↔"brown" (0 errors)
+                            <br>• Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
+                            <br>• Unmatched OCR: "quik" (4 chars) = 4 errors
+                            <br>• Total: 12 errors / 16 GT chars = 25% CRR</li>
+                    </ul>
+                </div>
+
+                <h4>Quick Reference</h4>
+                <ul>
+                    <li><strong>High Precision:</strong> OCR doesn't add extra/wrong words</li>
+                    <li><strong>High Recall:</strong> OCR doesn't miss words</li>
+                    <li><strong>High F1:</strong> Good balance of both</li>
+                    <li><strong>High CRR:</strong> Few character-level errors</li>
+                    <li><strong>Color coding:</strong> Normal = exact match, Red = no match</li>
+                </ul>
+            </div>
         </div>
 
         <!-- Manual Input Mode -->
-        <div id="manual-mode" class="mode-content active">
+        <div id="manual-mode" class="mode-content">
             <div class="input-section">
                 <div class="input-column">
                     <h3>Ground Truth</h3>
-                    <textarea id="ground-truth" placeholder="Enter ground truth text..."></textarea>
+                    <textarea id="ground-truth" placeholder="Enter ground truth text...">Invoice Number: INV-2024-001
+Date: January 15, 2024
+Customer: Acme Corporation
+Amount Due: $1,250.00
+Payment Terms: Net 30
+Description: Consulting Services</textarea>
                 </div>
                 <div class="input-column">
                     <h3>OCR Output</h3>
-                    <textarea id="ocr-output" placeholder="Enter OCR output text..."></textarea>
+                    <textarea id="ocr-output" placeholder="Enter OCR output text...">Invoice Number: INV-2O24-001
+Date: January 15, 2024
+Customer: Acme Corporation
+Amount Due: $1,25O.OO
+Payment Terms: Net 30
+Description: Consulting Services</textarea>
                 </div>
             </div>
 
@@ -190,6 +200,25 @@
                             <span>No Match (red)</span>
                         </div>
                     </div>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Hover Highlighting</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color hover-gold"></span>
+                            <span>Hovered word (gold background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color hover-blue"></span>
+                            <span>Matched counterpart (blue background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-gold"></span>
+                            <span>Same word, same panel (gold border)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-blue"></span>
+                            <span>Same word, other panel (blue border)</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -245,6 +274,91 @@
                             <span>No Match (red)</span>
                         </div>
                     </div>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Hover Highlighting</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color hover-gold"></span>
+                            <span>Hovered word (gold background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color hover-blue"></span>
+                            <span>Matched counterpart (blue background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-gold"></span>
+                            <span>Same word, same panel (gold border)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-blue"></span>
+                            <span>Same word, other panel (blue border)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Mode -->
+        <div id="examples-mode" class="mode-content">
+            <div class="examples-section">
+                <h3>Try an Example</h3>
+                <p style="color: #666; margin-bottom: 15px;">Click on an example to automatically load and analyze it</p>
+                <div id="examples-container" class="examples-grid">
+                    <div class="loading-examples" style="text-align: center; padding: 20px; color: #666;">
+                        Loading examples...
+                    </div>
+                </div>
+            </div>
+
+            <div id="examples-results" class="results-section" style="display: none;">
+                <h3>Comparison Results</h3>
+                <p class="results-note">Results sorted by F1 Score (highest first). Top 3 models are highlighted with medals.</p>
+
+                <!-- Column Visibility Controls -->
+                <div class="column-controls">
+                    <label><input type="checkbox" class="column-toggle-examples" data-column="precision" checked> Precision</label>
+                    <label><input type="checkbox" class="column-toggle-examples" data-column="recall" checked> Recall</label>
+                    <label><input type="checkbox" class="column-toggle-examples" data-column="f1" checked> F1 Score</label>
+                    <label><input type="checkbox" class="column-toggle-examples" data-column="crr" checked> Avg CRR</label>
+                    <label><input type="checkbox" class="column-toggle-examples" data-column="exact" checked> Exact Matches</label>
+                </div>
+
+                <button id="export-csv-btn-examples" class="secondary-btn">Export as CSV</button>
+
+                <div id="comparison-table-container-examples">
+                    <!-- Table will be inserted here by table.js -->
+                </div>
+
+                <div class="legend">
+                    <h4>Legend</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color exact-match"></span>
+                            <span>Exact Match (no highlight)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color no-match"></span>
+                            <span>No Match (red)</span>
+                        </div>
+                    </div>
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Hover Highlighting</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color hover-gold"></span>
+                            <span>Hovered word (gold background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color hover-blue"></span>
+                            <span>Matched counterpart (blue background)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-gold"></span>
+                            <span>Same word, same panel (gold border)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color border-blue"></span>
+                            <span>Same word, other panel (blue border)</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,8 +374,10 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/hover-highlighter.js') }}"></script>
     <script src="{{ url_for('static', filename='js/manual-mode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/batch-mode.js') }}"></script>
     <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/examples.js') }}"></script>
 </body>
 </html>

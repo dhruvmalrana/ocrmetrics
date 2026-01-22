@@ -78,6 +78,18 @@ h1 {
     line-height: 1.8;
 }
 
+.mode-content .info-content {
+    background: white;
+    padding: 30px;
+    margin-top: 0;
+}
+
+.mode-content .info-content h3 {
+    color: #2c3e50;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
 .info-content h4 {
     color: #2c3e50;
     margin-top: 20px;
@@ -354,6 +366,75 @@ textarea:focus {
     color: white;
 }
 
+/* Examples Section */
+.examples-section {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.examples-section h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.example-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.example-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.example-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.example-card-info {
+    padding: 15px;
+}
+
+.example-card-title {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+}
+
+.example-card-meta {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.example-card-meta span {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.loading-examples {
+    padding: 40px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
 /* Buttons */
 .button-section {
     text-align: center;
@@ -509,6 +590,9 @@ textarea:focus {
 
 .word {
     display: inline;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .word.fuzzy-match {
@@ -522,6 +606,65 @@ textarea:focus {
     background-color: #ffcdd2;
     padding: 2px 4px;
     border-radius: 3px;
+}
+
+/* Hover highlighting styles */
+.word.hover-source {
+    background-color: #ffd700 !important;  /* Gold highlight */
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    font-weight: bold;
+    z-index: 10;
+}
+
+.word.hover-target {
+    background-color: #87ceeb !important;  /* Sky blue highlight */
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(135, 206, 235, 0.6);
+    z-index: 5;
+}
+
+/* Ensure hover effects work with existing match-type colors */
+.word.fuzzy-match.hover-source,
+.word.no-match.hover-source {
+    background-color: #ffd700 !important;
+}
+
+.word.fuzzy-match.hover-target,
+.word.no-match.hover-target {
+    background-color: #87ceeb !important;
+}
+
+/* Border highlights for all instances of the same word */
+.word.hover-same-panel {
+    border: 2px solid #ffd700;  /* Gold border for same panel */
+    padding: 1px 3px;
+    border-radius: 3px;
+    box-shadow: 0 0 4px rgba(255, 215, 0, 0.3);
+}
+
+.word.hover-other-panel {
+    border: 2px solid #87ceeb;  /* Blue border for other panel */
+    padding: 1px 3px;
+    border-radius: 3px;
+    box-shadow: 0 0 4px rgba(135, 206, 235, 0.3);
+}
+
+/* Ensure border highlights work with existing match-type colors */
+.word.fuzzy-match.hover-same-panel,
+.word.no-match.hover-same-panel {
+    border: 2px solid #ffd700;
+    padding: 1px 3px;
+}
+
+.word.fuzzy-match.hover-other-panel,
+.word.no-match.hover-other-panel {
+    border: 2px solid #87ceeb;
+    padding: 1px 3px;
 }
 
 /* Legend */
@@ -566,6 +709,24 @@ textarea:focus {
 
 .legend-color.no-match {
     background: #ffcdd2;
+}
+
+.legend-color.hover-gold {
+    background: #ffd700;
+}
+
+.legend-color.hover-blue {
+    background: #87ceeb;
+}
+
+.legend-color.border-gold {
+    background: white;
+    border: 2px solid #ffd700;
+}
+
+.legend-color.border-blue {
+    background: white;
+    border: 2px solid #87ceeb;
 }
 
 /* Comparison Table */

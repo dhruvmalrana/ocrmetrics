@@ -101,6 +101,16 @@ function displayVisualization(containerId, annotations) {
             span.className = 'word no-match';
         }
 
+        // Add data attributes for hover highlighting
+        span.dataset.matchId = annotation.match_id || 'unmatched';
+        span.dataset.matchType = annotation.match_type;
+        span.dataset.panel = containerId.includes('gt') ? 'gt' : 'ocr';
+
         container.appendChild(span);
     });
+
+    // Initialize hover highlighter after rendering
+    if (typeof HoverHighlighter !== 'undefined') {
+        HoverHighlighter.initialize();
+    }
 }
