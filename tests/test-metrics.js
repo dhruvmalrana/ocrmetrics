@@ -1,6 +1,6 @@
 /**
  * Test suite for metrics.js
- * Tests metrics calculation functionality
+ * Tests metrics calculation functionality including Levenshtein-based CER
  */
 
 (function() {
@@ -45,7 +45,34 @@
         return { passed: passedTests, failed: failedTests, success: failedTests === 0 };
     }
 
-// Tests
+// Levenshtein Distance Tests
+
+test('Levenshtein: identical strings', () => {
+    assertEquals(levenshteinDistance('hello', 'hello'), 0, 'Identical strings should have distance 0');
+});
+
+test('Levenshtein: empty strings', () => {
+    assertEquals(levenshteinDistance('', ''), 0, 'Two empty strings should have distance 0');
+    assertEquals(levenshteinDistance('hello', ''), 5, 'Distance from string to empty should be string length');
+    assertEquals(levenshteinDistance('', 'world'), 5, 'Distance from empty to string should be string length');
+});
+
+test('Levenshtein: single substitution', () => {
+    assertEquals(levenshteinDistance('quick', 'quiok'), 1, 'One char substitution should be 1');
+    assertEquals(levenshteinDistance('cat', 'bat'), 1, 'One char substitution at start should be 1');
+});
+
+test('Levenshtein: single insertion/deletion', () => {
+    assertEquals(levenshteinDistance('hello', 'helo'), 1, 'One deletion should be 1');
+    assertEquals(levenshteinDistance('helo', 'hello'), 1, 'One insertion should be 1');
+});
+
+test('Levenshtein: multiple edits', () => {
+    assertEquals(levenshteinDistance('kitten', 'sitting'), 3, 'kitten->sitting should be 3 edits');
+    assertEquals(levenshteinDistance('saturday', 'sunday'), 3, 'saturday->sunday should be 3 edits');
+});
+
+// Metrics Tests
 
 test('Metrics: perfect match', () => {
     const matches = [
@@ -123,7 +150,7 @@ test('Metrics: F1 score calculation', () => {
 
 test('Metrics: CRR with exact match only', () => {
     const matches = [
-        ['hello', 'hello', 0, 'exact'] // 0 character errors
+        ['hello', 'hello', 0, 'exact']
     ];
 
     const metrics = calculateMetrics(matches);
@@ -134,19 +161,19 @@ test('Metrics: CRR with exact match only', () => {
     assertEquals(metrics.avg_crr, 1.0, 'CRR should be 1.0 for exact match');
 });
 
-test('Metrics: CRR with unmatched words', () => {
+test('Metrics: CRR with unmatched words (Levenshtein)', () => {
     const matches = [
-        ['hello', 'hello', 0, 'exact'], // 0 errors
-        ['world', null, null, 'gt_only'], // 5 chars = 5 errors
-        [null, 'test', null, 'ocr_only'] // 4 chars = 4 errors
+        ['hello', 'hello', 0, 'exact'],
+        ['world', null, null, 'gt_only'],
+        [null, 'test', null, 'ocr_only']
     ];
 
     const metrics = calculateMetrics(matches);
 
-    // Total GT chars: 5 + 5 = 10
-    // Total errors: 0 + 5 + 4 = 9
-    // CRR: 1 - (9/10) = 0.1
-    assertEquals(metrics.avg_crr, 0.1, 'CRR should be 0.1');
+    // Reconstructed: gtText = "helloworld" (10 chars), ocrText = "hellotest" (9 chars)
+    // Levenshtein("helloworld", "hellotest") = 5 (w->t, o->e, r->s, l->t, delete d)
+    // CER = 5/10 = 0.5, CRR = 0.5
+    assertEquals(metrics.avg_crr, 0.5, 'CRR should be 0.5 with Levenshtein');
 });
 
 test('Metrics: invoice example', () => {
@@ -190,25 +217,24 @@ test('Metrics: counts are correct', () => {
     assertEquals(metrics.unmatched_ocr, 1, 'Should have 1 unmatched OCR word');
 });
 
-test('Metrics: CRR comprehensive calculation', () => {
-    // Testing all CRR scenarios:
-    // - Exact matches contribute 0 errors
-    // - GT-only words: all chars are errors
-    // - OCR-only words: all chars are errors
+test('Metrics: CRR comprehensive calculation (Levenshtein)', () => {
+    // Testing CRR with Levenshtein distance
     const matches = [
-        ['the', 'the', 0, 'exact'],      // 3 chars, 0 errors
-        ['quick', 'quick', 0, 'exact'],  // 5 chars, 0 errors
-        ['brown', null, null, 'gt_only'], // 5 chars, 5 errors (missed by OCR)
-        ['fox', null, null, 'gt_only'],   // 3 chars, 3 errors (missed by OCR)
-        [null, 'quik', null, 'ocr_only']  // 4 chars, 4 errors (hallucinated)
+        ['the', 'the', 0, 'exact'],
+        ['quick', 'quick', 0, 'exact'],
+        ['brown', null, null, 'gt_only'],
+        ['fox', null, null, 'gt_only'],
+        [null, 'quik', null, 'ocr_only']
     ];
 
     const metrics = calculateMetrics(matches);
 
-    // Total GT chars: 3 (the) + 5 (quick) + 5 (brown) + 3 (fox) = 16
-    // Total errors: 0 (the) + 0 (quick) + 5 (brown) + 3 (fox) + 4 (quik) = 12
-    // CRR: 1 - (12/16) = 0.25
-    assertEquals(metrics.avg_crr, 0.25, 'CRR should be 0.25 (25%)');
+    // Reconstructed: gtText = "thequickbrownfox" (16 chars), ocrText = "thequickquik" (12 chars)
+    // Levenshtein("thequickbrownfox", "thequickquik"):
+    // - First 8 match (thequick)
+    // - Transform "brownfox" -> "quik": b->q, r->u, o->i, w->k, del(n,o,f,x) = 8 edits
+    // CER = 8/16 = 0.5, CRR = 0.5
+    assertEquals(metrics.avg_crr, 0.5, 'CRR should be 0.5 (50%) with Levenshtein');
 });
 
 test('Metrics: empty input', () => {
@@ -220,6 +246,41 @@ test('Metrics: empty input', () => {
     assertEquals(metrics.recall, 0.0, 'Recall should be 0.0 for empty input');
     assertEquals(metrics.f1_score, 0.0, 'F1 score should be 0.0 for empty input');
     assertEquals(metrics.avg_crr, 0.0, 'CRR should be 0.0 for empty input');
+});
+
+test('Metrics: CRR with single char substitution (key improvement)', () => {
+    // This is the key case that Levenshtein fixes:
+    // "quick" -> "quiok" should be 1 error, not 10 (5 del + 5 ins)
+    const matches = [
+        ['quick', null, null, 'gt_only'],
+        [null, 'quiok', null, 'ocr_only']
+    ];
+
+    const metrics = calculateMetrics(matches);
+
+    // gtText = "quick" (5 chars), ocrText = "quiok" (5 chars)
+    // Levenshtein("quick", "quiok") = 1 (c->o substitution)
+    // CER = 1/5 = 0.2, CRR = 0.8
+    assertEquals(metrics.avg_crr, 0.8, 'CRR should be 0.8 (80%) - single char substitution');
+    assertEquals(metrics.char_errors, 1, 'Should have only 1 character error');
+});
+
+test('Metrics: CRR with word arrays provided', () => {
+    // Test the primary code path where word arrays are passed directly
+    const matches = [
+        ['the', 'the', 0, 'exact'],
+        ['quick', null, null, 'gt_only'],
+        [null, 'quiok', null, 'ocr_only']
+    ];
+    const gtWords = ['the', 'quick'];
+    const ocrWords = ['the', 'quiok'];
+
+    const metrics = calculateMetrics(matches, gtWords, ocrWords);
+
+    // gtText = "thequick" (8 chars), ocrText = "thequiok" (8 chars)
+    // Levenshtein = 1 (c->o)
+    // CER = 1/8 = 0.125, CRR = 0.875
+    assertEquals(metrics.avg_crr, 0.875, 'CRR should be 0.875 with word arrays');
 });
 
     // Register with test registry

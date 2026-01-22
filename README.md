@@ -109,13 +109,14 @@ F1 = 2 × (Precision × Recall) / (Precision + Recall)
 ```
 
 ### CRR (Character Recognition Rate)
-Character-level accuracy
+Character-level accuracy using Levenshtein distance
 ```
-CRR = 1 - (Character Errors / Total GT Characters)
+CRR = 1 - CER
+CER = Levenshtein_Distance(OCR_text, GT_text) / Total_GT_Characters
 ```
-Character errors = all chars in unmatched GT words + all chars in unmatched OCR words
+Levenshtein distance counts the minimum single-character edits (insertions, deletions, substitutions) needed to transform OCR output into ground truth.
 
-**Note**: Exact matches contribute 0 errors (since they're identical)
+**Note**: CRR can be negative if OCR produces significantly more errors than GT characters (CER > 100%)
 
 ## Configuration Options
 
@@ -168,11 +169,19 @@ See [examples/README.md](examples/README.md) for complete instructions and JSON 
    - Handle duplicates correctly
    - Only exact matches count toward precision/recall
 
-3. **Character Errors**:
-   - For exact matches: 0 errors (words are identical)
-   - For unmatched GT words: All characters count as errors
-   - For unmatched OCR words: All characters count as errors
-   - CRR = 1 - (Total Errors / Total GT Characters)
+3. **Character Error Rate (CER)**:
+   - Uses Levenshtein (edit) distance on concatenated text
+   - Counts minimum single-character edits: insertions, deletions, substitutions
+   - CER = Levenshtein_Distance / Total_GT_Characters
+   - CRR = 1 - CER
+
+### References
+
+The metrics implemented follow standard OCR evaluation practices:
+
+- **Levenshtein Distance**: V.I. Levenshtein, "Binary codes capable of correcting deletions, insertions, and reversals," Soviet Physics Doklady, 1966
+- **CER for OCR**: R. Prasad et al., "Evaluation metrics for document analysis," ICDAR 2001
+- **OCR Evaluation Best Practices**: [OCR-D Ground Truth Guidelines](https://ocr-d.de/en/gt-guidelines/trans/trLevelOfTranscription.html)
 
 ## Testing
 
@@ -240,19 +249,23 @@ Ground Truth: "The quick brown fox"
 OCR Output: "The quik brown"
 
 Matching:
-- Exact Matches: "The", "brown" (2 words, 0 errors each)
-- Unmatched GT: "quick" (5 chars), "fox" (3 chars)
-- Unmatched OCR: "quik" (4 chars)
+- Exact Matches: "The", "brown" (2 words)
+- Unmatched GT: "quick", "fox"
+- Unmatched OCR: "quik"
 
 Results:
 - Precision: 66.67% (2 exact matches / 3 OCR words)
 - Recall: 50.00% (2 exact matches / 4 GT words)
 - F1 Score: 57.14%
-- CRR: 25.00%
-  - Char errors = 0 (The) + 0 (brown) + 5 (quick) + 3 (fox) + 4 (quik) = 12
-  - Total GT chars = 16
-  - CRR = 1 - (12/16) = 0.25 = 25%
+- CRR: 68.75%
+  - GT text (normalized): "thequickbrownfox" (16 chars)
+  - OCR text (normalized): "thequikbrown" (12 chars)
+  - Levenshtein distance: 5 edits (c→k substitution + delete "fox")
+  - CER = 5/16 = 31.25%
+  - CRR = 1 - 31.25% = 68.75%
 ```
+
+**Key improvement**: With the old word-level approximation, "quick"→"quik" would count as 9 errors (5 deletions + 4 insertions). With Levenshtein distance, it correctly counts as just 1 substitution.
 
 ## License
 

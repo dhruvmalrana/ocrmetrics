@@ -52,12 +52,11 @@
                 <h3>📖 Standard OCR Evaluation Metrics</h3>
 
                 <h4>Evaluation Method</h4>
-                <p>This tool uses <strong>standard OCR evaluation methodology</strong> with exact word matching:</p>
+                <p>This tool uses <strong>standard OCR evaluation methodology</strong>:</p>
                 <ul>
                     <li>Words are preprocessed (case normalization, punctuation removal based on config)</li>
                     <li>Only <strong>exact matches</strong> count toward Precision and Recall</li>
-                    <li>Exact matches = 0 character errors (words are identical)</li>
-                    <li>Unmatched words = all characters count as errors</li>
+                    <li>CER uses <strong>Levenshtein distance</strong> (edit distance) for accurate character-level errors</li>
                 </ul>
 
                 <h4>Metrics Explained</h4>
@@ -78,10 +77,10 @@
                         <br><em>Single metric for comparing OCR models</em>
                     </div>
                     <div class="metric-desc">
-                        <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy
-                        <br><code>CRR = 1 - (Character Errors / Total GT Characters)</code>
-                        <br><em>Exact matches have 0 errors (identical words)</em>
-                        <br>Character errors = 0 for exact matches + all chars in unmatched GT words + all chars in unmatched OCR words
+                        <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy using Levenshtein distance
+                        <br><code>CER = Levenshtein_Distance(OCR, GT) / Total_GT_Characters</code>
+                        <br><code>CRR = 1 - CER</code>
+                        <br><em>Levenshtein distance counts minimum edits (insertions, deletions, substitutions)</em>
                     </div>
                 </div>
 
@@ -102,10 +101,10 @@
                         <li><strong>Recall:</strong> 2/4 = 50.00%</li>
                         <li><strong>F1 Score:</strong> 57.14%</li>
                         <li><strong>CRR:</strong>
-                            <br>• Matched: "The"↔"The" (0 errors), "brown"↔"brown" (0 errors)
-                            <br>• Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
-                            <br>• Unmatched OCR: "quik" (4 chars) = 4 errors
-                            <br>• Total: 12 errors / 16 GT chars = 25% CRR</li>
+                            <br>• GT text: "thequickbrownfox" (16 chars)
+                            <br>• OCR text: "thequikbrown" (12 chars)
+                            <br>• Levenshtein distance: 5 edits
+                            <br>• CER = 5/16 = 31.25%, CRR = 68.75%</li>
                     </ul>
                 </div>
 
@@ -117,6 +116,21 @@
                     <li><strong>High CRR:</strong> Few character-level errors</li>
                     <li><strong>Color coding:</strong> Normal = exact match, Red = no match</li>
                 </ul>
+
+                <h4>References</h4>
+                <div class="references">
+                    <p><strong>Precision, Recall & F1:</strong></p>
+                    <ul>
+                        <li>van Rijsbergen, C.J. (1979). <em>Information Retrieval</em>, 2nd ed. Butterworths. <a href="https://www.dcs.gla.ac.uk/Keith/Preface.html" target="_blank">[Link]</a></li>
+                        <li>Manning, C.D., Raghavan, P., & Schütze, H. (2008). <em>Introduction to Information Retrieval</em>. Cambridge University Press. <a href="https://nlp.stanford.edu/IR-book/" target="_blank">[Link]</a></li>
+                    </ul>
+                    <p><strong>Character Error Rate (CER):</strong></p>
+                    <ul>
+                        <li>Levenshtein, V.I. (1966). "Binary codes capable of correcting deletions, insertions, and reversals." <em>Soviet Physics Doklady</em>, 10(8), 707-710.</li>
+                        <li>Rice, S.V. (1996). <em>Measuring the Accuracy of Page-Reading Systems</em>. UNLV/ISRI. <a href="https://stephenvrice.com/Accuracy.pdf" target="_blank">[PDF]</a></li>
+                        <li>OCR-D Ground Truth Guidelines. <a href="https://ocr-d.de/en/gt-guidelines/trans/trLevelOfTranscription.html" target="_blank">[Link]</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
 

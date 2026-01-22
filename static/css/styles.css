@@ -176,6 +176,41 @@ h1 {
     margin-left: 20px;
 }
 
+.references {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #6c757d;
+    font-size: 0.9em;
+}
+
+.references p {
+    margin: 10px 0 5px 0;
+    font-size: 0.95em;
+}
+
+.references p:first-child {
+    margin-top: 0;
+}
+
+.references ul {
+    margin: 5px 0 10px 20px;
+}
+
+.references ul li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.references a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.references a:hover {
+    text-decoration: underline;
+}
+
 /* Mode Switcher */
 .mode-switcher {
     display: flex;
@@ -839,9 +874,9 @@ textarea:focus {
 .metric-tooltip {
     display: none;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
     background: #2c3e50;
     color: white;
     padding: 10px 14px;
@@ -850,10 +885,20 @@ textarea:focus {
     font-family: monospace;
     white-space: pre-line;
     z-index: 1000;
-    min-width: 220px;
+    min-width: 240px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     text-align: left;
     line-height: 1.6;
+}
+
+/* Tooltip arrow pointing up */
+.metric-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 20px;
+    border: 6px solid transparent;
+    border-bottom-color: #2c3e50;
 }
 
 .metric-with-tooltip:hover .metric-tooltip {

@@ -4,18 +4,71 @@
  */
 
 /**
+ * Calculate Levenshtein (edit) distance between two strings.
+ * Uses dynamic programming approach.
+ *
+ * @param {string} str1 - First string
+ * @param {string} str2 - Second string
+ * @returns {number} Minimum number of single-character edits (insertions, deletions, substitutions)
+ */
+function levenshteinDistance(str1, str2) {
+    const m = str1.length;
+    const n = str2.length;
+
+    // Handle edge cases
+    if (m === 0) return n;
+    if (n === 0) return m;
+
+    // Create 2D array for dynamic programming
+    // Use only two rows to save memory (current and previous)
+    let prevRow = new Array(n + 1);
+    let currRow = new Array(n + 1);
+
+    // Initialize first row (distance from empty string to str2 prefixes)
+    for (let j = 0; j <= n; j++) {
+        prevRow[j] = j;
+    }
+
+    // Fill the matrix
+    for (let i = 1; i <= m; i++) {
+        currRow[0] = i; // Distance from str1 prefix to empty string
+
+        for (let j = 1; j <= n; j++) {
+            if (str1[i - 1] === str2[j - 1]) {
+                // Characters match, no operation needed
+                currRow[j] = prevRow[j - 1];
+            } else {
+                // Take minimum of:
+                // - prevRow[j] + 1: deletion from str1
+                // - currRow[j-1] + 1: insertion into str1
+                // - prevRow[j-1] + 1: substitution
+                currRow[j] = 1 + Math.min(prevRow[j], currRow[j - 1], prevRow[j - 1]);
+            }
+        }
+
+        // Swap rows
+        [prevRow, currRow] = [currRow, prevRow];
+    }
+
+    // Result is in prevRow because of the final swap
+    return prevRow[n];
+}
+
+/**
  * Calculate OCR evaluation metrics from word matches.
  *
  * Metrics:
  * - Precision: exact_matches / total_ocr_words (only exact matches count)
  * - Recall: exact_matches / total_gt_words (only exact matches count)
- * - CRR: Character Recognition Rate = 1 - CER (document-level, includes all characters)
+ * - CRR: Character Recognition Rate = 1 - CER (uses Levenshtein distance)
  * - F1 Score: Harmonic mean of precision and recall
  *
  * @param {Array} matches - List of match tuples from matchWords()
+ * @param {Array} gtWords - List of preprocessed ground truth words (optional, for accurate CER)
+ * @param {Array} ocrWords - List of preprocessed OCR output words (optional, for accurate CER)
  * @returns {Object} Dictionary with metrics
  */
-function calculateMetrics(matches) {
+function calculateMetrics(matches, gtWords, ocrWords) {
     // Separate matches by type
     const exactMatches = matches.filter(m => m[3] === 'exact');
     const gtOnlyMatches = matches.filter(m => m[3] === 'gt_only');
@@ -36,33 +89,48 @@ function calculateMetrics(matches) {
         f1Score = 2 * (precision * recall) / (precision + recall);
     }
 
-    // Calculate document-level CRR (Character Recognition Rate)
-    let totalCharErrors = 0;
+    // Calculate CER/CRR using Levenshtein distance (standard approach)
+    let avgCrr = 0.0;
+    let charErrors = 0;
     let totalGtChars = 0;
 
-    // For exact matches: 0 errors (words are identical)
-    for (const [gtWord] of exactMatches) {
-        // No errors for exact matches
-        totalGtChars += gtWord.length;
-    }
+    if (gtWords && ocrWords) {
+        // Use proper Levenshtein distance on concatenated text (standard CER)
+        const gtText = gtWords.join('');
+        const ocrText = ocrWords.join('');
+        totalGtChars = gtText.length;
+        charErrors = levenshteinDistance(gtText, ocrText);
 
-    // For unmatched GT words: all characters are errors (deletions - OCR missed them)
-    for (const [gtWord] of gtOnlyMatches) {
-        totalCharErrors += gtWord.length;
-        totalGtChars += gtWord.length;
-    }
+        if (totalGtChars > 0) {
+            const cer = charErrors / totalGtChars;
+            avgCrr = 1.0 - cer;
+        }
+    } else {
+        // Fallback for tests that don't provide word arrays:
+        // Reconstruct from matches (order doesn't matter for Levenshtein on concatenated words)
+        const gtWordsFromMatches = [];
+        const ocrWordsFromMatches = [];
 
-    // For unmatched OCR words: all characters are errors (insertions - OCR hallucinated them)
-    for (const [, ocrWord] of ocrOnlyMatches) {
-        totalCharErrors += ocrWord.length;
-    }
+        for (const [gtWord, ocrWord, , matchType] of matches) {
+            if (matchType === 'exact') {
+                gtWordsFromMatches.push(gtWord);
+                ocrWordsFromMatches.push(ocrWord);
+            } else if (matchType === 'gt_only') {
+                gtWordsFromMatches.push(gtWord);
+            } else if (matchType === 'ocr_only') {
+                ocrWordsFromMatches.push(ocrWord);
+            }
+        }
 
-    // Calculate CRR (Character Recognition Rate = 1 - CER)
-    // CRR can be negative if OCR produces more errors than GT characters
-    let avgCrr = 0.0;
-    if (totalGtChars > 0) {
-        const cer = totalCharErrors / totalGtChars;
-        avgCrr = 1.0 - cer;
+        const gtText = gtWordsFromMatches.join('');
+        const ocrText = ocrWordsFromMatches.join('');
+        totalGtChars = gtText.length;
+        charErrors = levenshteinDistance(gtText, ocrText);
+
+        if (totalGtChars > 0) {
+            const cer = charErrors / totalGtChars;
+            avgCrr = 1.0 - cer;
+        }
     }
 
     return {
@@ -76,7 +144,7 @@ function calculateMetrics(matches) {
         unmatched_gt: gtOnlyMatches.length,
         unmatched_ocr: ocrOnlyMatches.length,
         // Additional data for tooltips
-        char_errors: totalCharErrors,
+        char_errors: charErrors,
         total_gt_chars: totalGtChars
     };
 }
@@ -134,7 +202,7 @@ window.MetricsUtils = {
 
             case 'avg_crr':
                 const cer = totalGtChars > 0 ? (charErrors / totalGtChars * 100).toFixed(2) : '0.00';
-                return `CRR = 1 - (Character Errors / Total GT Chars)\n= 1 - (${charErrors} / ${totalGtChars})\n= 1 - ${cer}%\n= ${(metrics.avg_crr * 100).toFixed(2)}%`;
+                return `CRR = 1 - CER (Character Error Rate)\nCER = Levenshtein Distance / GT Characters\n= ${charErrors} / ${totalGtChars} = ${cer}%\nCRR = 1 - ${cer}% = ${(metrics.avg_crr * 100).toFixed(2)}%`;
 
             default:
                 return '';

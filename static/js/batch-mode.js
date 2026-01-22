@@ -126,8 +126,8 @@ async function handleBatchAnalyze() {
             // Match words (exact matching only)
             const matches = matchWords(gtResult.words, ocrResult.words);
 
-            // Calculate metrics
-            const metrics = calculateMetrics(matches);
+            // Calculate metrics (pass word arrays for accurate Levenshtein-based CER)
+            const metrics = calculateMetrics(matches, gtResult.words, ocrResult.words);
 
             // Create annotations
             const gtAnnotations = createAnnotations(gtResult.wordData, matches, true);

@@ -19,7 +19,7 @@ Click "Run All Tests" - all tests should pass ✓
 
 - **test-preprocessor.js** - Tokenization, normalization
 - **test-matcher.js** - Word matching algorithm (exact matching only)
-- **test-metrics.js** - Precision, Recall, F1, CRR metrics
+- **test-metrics.js** - Precision, Recall, F1, CRR metrics (including Levenshtein distance)
 
 ## Complete Testing Guide
 
