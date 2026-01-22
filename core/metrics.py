@@ -13,8 +13,14 @@ def calculate_metrics(matches):
     Metrics:
     - Precision: exact_matches / total_ocr_words (only exact matches count)
     - Recall: exact_matches / total_gt_words (only exact matches count)
-    - Average CRR: Character Recognition Rate across all matched pairs (exact + fuzzy)
+    - CRR: Character Recognition Rate = 1 - CER (document-level, includes all characters)
     - F1 Score: Harmonic mean of precision and recall
+
+    CRR Calculation (Standard Document-Level):
+    - Character errors include: edit distances for matched pairs + all chars in unmatched words
+    - CER = total_character_errors / total_gt_characters
+    - CRR = 1 - CER
+    - This follows standard OCR evaluation methodology where unmatched words count as errors
 
     Args:
         matches (list): List of match tuples from matcher.match_words()
@@ -24,7 +30,7 @@ def calculate_metrics(matches):
         dict: Dictionary with keys:
             - precision (float): 0.0 to 1.0
             - recall (float): 0.0 to 1.0
-            - avg_crr (float): 0.0 to 1.0
+            - avg_crr (float): 0.0 to 1.0 (document-level character recognition rate)
             - f1_score (float): 0.0 to 1.0
             - exact_matches (int): Count of exact matches
             - fuzzy_matches (int): Count of fuzzy matches
@@ -56,21 +62,33 @@ def calculate_metrics(matches):
     else:
         f1_score = 0.0
 
-    # Calculate Average CRR for all matched pairs (exact + fuzzy)
-    # This shows character-level accuracy for recognized words
-    crr_scores = []
+    # Calculate document-level CRR (Character Recognition Rate)
+    # This follows standard CER/CRR calculation used in OCR evaluation
+    # CRR = 1 - CER = 1 - (total_char_errors / total_gt_chars)
 
-    # Exact matches have CRR = 1.0 (edit distance = 0)
-    for gt_word, ocr_word, edit_dist, match_type in exact_matches:
-        crr = calculate_crr(gt_word, ocr_word)
-        crr_scores.append(crr)
+    total_char_errors = 0
+    total_gt_chars = 0
 
-    # Fuzzy matches have CRR based on edit distance
-    for gt_word, ocr_word, edit_dist, match_type in fuzzy_matches:
-        crr = calculate_crr(gt_word, ocr_word)
-        crr_scores.append(crr)
+    # For matched pairs: count character-level edit distance
+    for gt_word, ocr_word, edit_dist, match_type in exact_matches + fuzzy_matches:
+        total_char_errors += edit_dist if edit_dist is not None else 0
+        total_gt_chars += len(gt_word)
 
-    avg_crr = sum(crr_scores) / len(crr_scores) if crr_scores else 0.0
+    # For unmatched GT words: all characters are errors (deletions - OCR missed them)
+    for gt_word, ocr_word, edit_dist, match_type in gt_only_matches:
+        total_char_errors += len(gt_word)
+        total_gt_chars += len(gt_word)
+
+    # For unmatched OCR words: all characters are errors (insertions - OCR hallucinated them)
+    for gt_word, ocr_word, edit_dist, match_type in ocr_only_matches:
+        total_char_errors += len(ocr_word)
+
+    # Calculate CRR (Character Recognition Rate = 1 - CER)
+    if total_gt_chars > 0:
+        cer = total_char_errors / total_gt_chars
+        avg_crr = max(0.0, 1.0 - cer)  # Ensure non-negative
+    else:
+        avg_crr = 0.0
 
     return {
         'precision': precision,

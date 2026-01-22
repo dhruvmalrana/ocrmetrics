@@ -9,23 +9,23 @@ A web application for evaluating OCR (Optical Character Recognition) output qual
   - **Batch Upload**: Compare multiple OCR models against ground truth
 
 - **Standard OCR Metrics**:
-  - Word-level Precision and Recall (exact matches only - WER standard)
-  - Average Character Recognition Rate (CRR) for matched words
+  - Word-level Precision and Recall (exact matches only - standard WER approach)
+  - Document-level Character Recognition Rate (CRR) - standard CER approach
   - F1 Score for balanced evaluation
 
-- **Intelligent Word Matching**:
-  - Two-phase algorithm: exact matching + fuzzy matching
+- **Exact Word Matching**:
+  - Only exact matches count toward precision/recall
   - Order-invariant comparison
-  - Configurable edit distance threshold
+  - Configurable preprocessing (case, punctuation)
 
 - **Visual Highlighting**:
   - Color-coded text visualization
   - Red: Unmatched words
-  - Purple: Fuzzy matches
-  - Normal: Exact matches
+  - Normal text: Exact matches
 
 - **Batch Comparison**:
   - Compare multiple OCR models simultaneously
+  - Automatic ranking by F1 Score with top 3 medals (🥇🥈🥉)
   - Sortable comparison table
   - Expandable row details with visualizations
   - Configurable column visibility
@@ -54,7 +54,7 @@ conda activate ocrmetrics
 
 3. Run the application:
 ```bash
-# Option 1: Use the run script
+# Option 1: Use the run script (recommended - automatically handles port cleanup)
 ./run.sh
 
 # Option 2: Run directly
@@ -63,8 +63,10 @@ python app.py
 
 4. Open your browser to:
 ```
-http://localhost:5000
+http://localhost:5001
 ```
+
+**Note**: The run script automatically kills any old process using port 5001, so you can just run `./run.sh` each time without worrying about port conflicts.
 
 ### Manual Setup (Alternative)
 
@@ -92,6 +94,46 @@ pip install -r requirements.txt
 python app.py
 ```
 
+## Testing
+
+The project includes comprehensive unit tests for all core logic.
+
+**IMPORTANT**: Tests must be run within the `ocrmetrics` conda environment.
+
+### Running Tests
+
+First, activate the conda environment:
+```bash
+conda activate ocrmetrics
+```
+
+Then run the tests:
+```bash
+# Option 1: Use the test runner script (automatically activates conda)
+./run_tests.sh
+
+# Option 2: Run tests directly (make sure conda is activated first!)
+python -m unittest discover -s tests -p "test_*.py" -v
+
+# Option 3: Run specific test file
+python -m unittest tests.test_metrics -v
+```
+
+### Test Coverage
+
+- **test_utils.py**: Levenshtein distance and CRR calculation
+- **test_preprocessor.py**: Tokenization, normalization, and text preprocessing
+- **test_matcher.py**: Word matching algorithm (exact and fuzzy)
+- **test_metrics.py**: Precision, recall, F1 score, and CRR metrics
+
+All core algorithms are thoroughly tested with edge cases including:
+- Empty inputs
+- Duplicate words
+- Case sensitivity
+- Punctuation handling
+- Fuzzy matching thresholds
+- Zero division scenarios
+
 ## Usage
 
 ### Manual Input Mode
@@ -100,7 +142,6 @@ python app.py
 2. Enter ground truth text in the left textarea
 3. Enter OCR output text in the right textarea
 4. Adjust configuration:
-   - **Edit Distance Threshold**: Maximum character differences for fuzzy matching (0-5)
    - **Case Sensitive**: Whether 'Hello' and 'hello' are different
    - **Ignore Punctuation**: Whether to strip punctuation before matching
 5. Click "Analyze"
@@ -116,7 +157,9 @@ python app.py
 4. Adjust configuration settings
 5. Click "Analyze All"
 6. View comparison table:
-   - Click column headers to sort
+   - Results automatically sorted by F1 Score (highest first)
+   - Top 3 models highlighted with medals: 🥇 Champion, 🥈 2nd Place, 🥉 3rd Place
+   - Click column headers to re-sort
    - Toggle column visibility with checkboxes
    - Click "+" button to expand row and see detailed visualization
    - Click "Export as CSV" to download results
@@ -132,7 +175,7 @@ python app.py
 Precision = Exact Matches / Total OCR Words
 ```
 
-**Important**: Only exact matches count (after preprocessing). Fuzzy matches do NOT inflate precision.
+**Important**: Only exact matches count (after preprocessing based on case/punctuation settings).
 
 **Example**:
 - Ground Truth: "The quick brown fox"
@@ -140,7 +183,7 @@ Precision = Exact Matches / Total OCR Words
 - Exact matches: "The", "brown" = 2
 - Precision = 2/3 = 66.67%
 
-**Interpretation**: High precision means low false positive rate (few incorrect words in OCR output).
+**Interpretation**: High precision = low false positive rate (OCR doesn't add wrong words).
 
 ### Word-Level Recall
 
@@ -151,7 +194,7 @@ Precision = Exact Matches / Total OCR Words
 Recall = Exact Matches / Total GT Words
 ```
 
-**Important**: Only exact matches count (aligns with Word Error Rate standards).
+**Important**: Only exact matches count (standard WER approach).
 
 **Example**:
 - Ground Truth: "The quick brown fox"
@@ -159,7 +202,7 @@ Recall = Exact Matches / Total GT Words
 - Exact matches: "The", "brown" = 2
 - Recall = 2/4 = 50.00%
 
-**Interpretation**: High recall means low false negative rate (few ground truth words missing from OCR).
+**Interpretation**: High recall = low false negative rate (OCR doesn't miss words).
 
 ### F1 Score
 
@@ -172,37 +215,45 @@ F1 = 2 × (Precision × Recall) / (Precision + Recall)
 
 **Interpretation**: Single metric that balances both precision and recall. Useful for comparing models.
 
-### Average Character Recognition Rate (CRR)
+### Character Recognition Rate (CRR)
 
-**Definition**: Character-level accuracy for ALL matched word pairs (both exact and fuzzy).
+**Definition**: Document-level character accuracy using standard CER (Character Error Rate) methodology.
 
 **Formula**:
 ```
-For each matched pair:
-  CRR = 1 - (Edit Distance / Max Word Length)
+Character Errors =
+  + Edit distance for matched word pairs
+  + All characters in unmatched GT words (OCR missed)
+  + All characters in unmatched OCR words (OCR hallucinated)
 
-Average CRR = Mean of all CRR scores
+CER = Character Errors / Total GT Characters
+CRR = 1 - CER
 ```
 
 **Important**:
-- CRR includes BOTH exact and fuzzy matches
-- Fuzzy matches contribute to CRR but NOT to precision/recall
-- Shows how close near-misses are at character level
+- CRR uses document-level calculation (not word-level averaging)
+- ALL characters count, including those in unmatched words
+- This is the standard CER approach used in OCR literature
+- CRR = 1 - CER (inverse of Character Error Rate)
 
 **Example**:
-- Exact match: "fox" ↔ "fox" → CRR = 1.0 (100%)
-- Fuzzy match: "quick" ↔ "quik" → Edit distance = 1, Max length = 5 → CRR = 1 - 1/5 = 0.8 (80%)
-- Average CRR = (1.0 + 0.8) / 2 = 0.9 (90%)
+- Ground Truth: "The quick brown fox" (16 characters)
+- OCR Output: "The quik brown" (13 characters)
+- Matched: "The" (0 errors), "brown" (0 errors)
+- Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
+- Unmatched OCR: "quik" (4 chars) = 4 errors
+- Character Errors = 0 + 0 + 8 + 4 = 12
+- CRR = 1 - (12/16) = 25.00%
 
-**Interpretation**: Shows character-level quality of recognized words, including near-matches.
+**Interpretation**: Shows overall character-level accuracy. Unmatched words significantly impact CRR.
 
 ## Algorithm Details
 
 ### Word Matching Algorithm
 
-The application uses a two-phase greedy matching algorithm:
+The application uses exact word matching with configurable preprocessing:
 
-#### Phase 1: Exact Matching
+#### Preprocessing & Matching
 1. **Preprocessing**:
    - Tokenize text by splitting on whitespace
    - Apply normalization based on config:
@@ -213,22 +264,19 @@ The application uses a two-phase greedy matching algorithm:
 2. **Exact Matching**:
    - For each ground truth word that appears in OCR words:
      - Match min(GT count, OCR count) instances
-     - Mark as exact matches (edit distance = 0)
+     - Mark as exact matches
      - **These matches COUNT toward precision/recall**
    - Remove matched instances from consideration
 
-#### Phase 2: Fuzzy Matching
-3. **Fuzzy Matching**:
-   - For remaining unmatched words:
-     - Calculate Levenshtein edit distance between all pairs
-     - Find best matches where distance ≤ threshold
-     - Greedily match pairs with lowest edit distance first
-     - **These matches are for CRR ONLY, NOT precision/recall**
-
-4. **Result**:
-   - Matched pairs (exact + fuzzy)
+3. **Result**:
+   - Matched pairs (exact matches only)
    - Unmatched GT words (false negatives - shown in red)
    - Unmatched OCR words (false positives - shown in red)
+
+4. **Character Error Calculation**:
+   - For matched pairs: Calculate edit distance at character level
+   - For unmatched words: Count all characters as errors
+   - CRR = 1 - (Total Character Errors / Total GT Characters)
 
 ### Levenshtein Edit Distance
 
@@ -243,15 +291,6 @@ The edit distance is the minimum number of single-character operations (insertio
 **Implementation**: Uses `python-Levenshtein` library (fast C implementation) with pure Python fallback.
 
 ## Configuration Options
-
-### Edit Distance Threshold (0-5)
-- **Default**: 1 character
-- **Purpose**: Maximum edit distance for fuzzy matching
-- **Examples**:
-  - Threshold = 0: Only exact matches count
-  - Threshold = 1: "hello" matches "helo" (1 deletion)
-  - Threshold = 2: "hello" matches "hllo" (1 deletion) and "helo" (1 deletion)
-  - Threshold = 5: Very lenient matching (may match unrelated words)
 
 ### Case Sensitive
 - **Default**: Unchecked (case-insensitive)
@@ -284,7 +323,6 @@ The edit distance is the minimum number of single-character operations (insertio
 ## Color Legend
 
 - **No Highlight (Normal Text)**: Exact match
-- **Purple Background**: Fuzzy match (matched via edit distance)
 - **Red Background**: No match
   - In Ground Truth: Word not found in OCR output (false negative)
   - In OCR Output: Word not found in ground truth (false positive)
@@ -321,40 +359,40 @@ The edit distance is the minimum number of single-character operations (insertio
 ## Comparison with Standard OCR Metrics
 
 ### Word Error Rate (WER)
-Our **Precision** and **Recall** metrics use the same approach as WER:
+Our **Precision** and **Recall** metrics align with WER methodology:
 - Only exact word matches count
 - No fuzzy matching in word-level metrics
 - Standard approach in speech recognition and OCR evaluation
 
 ### Character Error Rate (CER)
 Our **CRR** metric is the inverse of CER:
-- CER measures errors, CRR measures correctness
-- Both use edit distance at character level
-- CRR = 1 - (Edit Distance / Max Length)
+- CER measures errors, CRR measures correctness (accuracy)
+- Both use Levenshtein edit distance at character level
+- CRR = 1 - CER = 1 - (Character Errors / Total GT Characters)
+- Standard document-level calculation used in OCR literature
 
 ## Example Workflow
 
 ### Manual Mode Example
 ```
-Ground Truth: "The quick brown fox jumps over the lazy dog"
-OCR Output: "The quik brown fox jumps over lazy dog"
+Ground Truth: "The quick brown fox"
+OCR Output: "The quik brown"
 
 Configuration:
-- Edit Distance Threshold: 1
 - Case Sensitive: No
 - Ignore Punctuation: Yes
 
 Results:
-- Exact Matches: 7 ("The", "brown", "fox", "jumps", "over", "lazy", "dog")
-- Fuzzy Matches: 1 ("quick" ↔ "quik", edit distance = 1)
-- GT Only: 1 ("the" - second occurrence)
-- OCR Only: 0
+- Exact Matches: 2 ("The", "brown")
+- GT Only: 2 ("quick", "fox")
+- OCR Only: 1 ("quik")
 
 Metrics:
-- Precision = 7/8 = 87.50% (only exact matches count)
-- Recall = 7/9 = 77.78% (only exact matches count)
-- F1 Score = 82.35%
-- Avg CRR = 98.75% (includes 7 exact + 1 fuzzy match)
+- Precision = 2/3 = 66.67% (exact matches / OCR words)
+- Recall = 2/4 = 50.00% (exact matches / GT words)
+- F1 Score = 57.14%
+- Character errors = 0 (The) + 0 (brown) + 5 (quick) + 3 (fox) + 4 (quik) = 12
+- CRR = 1 - (12/16) = 25.00%
 ```
 
 ### Batch Mode Example
@@ -365,14 +403,14 @@ Files:
 - google_vision_out.txt: "Helo world from Python"
 - aws_textract_out.txt: "Hello wrld from Python"
 
-Results Table:
-┌───────────────┬───────────┬────────┬──────────┬─────────┐
-│ Model         │ Precision │ Recall │ F1 Score │ Avg CRR │
-├───────────────┼───────────┼────────┼──────────┼─────────┤
-│ tesseract     │ 100.00%   │ 100%   │ 100.00%  │ 100.00% │
-│ google_vision │  75.00%   │  75%   │  75.00%  │  93.75% │
-│ aws_textract  │  75.00%   │  75%   │  75.00%  │  93.75% │
-└───────────────┴───────────┴────────┴──────────┴─────────┘
+Results Table (sorted by F1 Score):
+┌──────┬────────────────┬───────────┬────────┬──────────┬─────────┐
+│ Rank │ Model          │ Precision │ Recall │ F1 Score │ Avg CRR │
+├──────┼────────────────┼───────────┼────────┼──────────┼─────────┤
+│ 🥇   │ tesseract      │ 100.00%   │ 100%   │ 100.00%  │ 100.00% │
+│ 🥈   │ google_vision  │  75.00%   │  75%   │  75.00%  │  93.75% │
+│ 🥉   │ aws_textract   │  75.00%   │  75%   │  75.00%  │  93.75% │
+└──────┴────────────────┴───────────┴────────┴──────────┴─────────┘
 ```
 
 ## License

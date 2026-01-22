@@ -70,9 +70,9 @@ function displayManualResults(data) {
 
     // Display details
     document.getElementById('exact-matches').textContent = metrics.exact_matches;
-    document.getElementById('fuzzy-matches').textContent = metrics.fuzzy_matches;
     document.getElementById('total-gt').textContent = metrics.total_gt_words;
     document.getElementById('total-ocr').textContent = metrics.total_ocr_words;
+    document.getElementById('unmatched-words').textContent = metrics.unmatched_gt + metrics.unmatched_ocr;
 
     // Display visualizations
     displayVisualization('gt-visualization', gt_annotations);

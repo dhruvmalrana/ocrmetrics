@@ -39,6 +39,131 @@ h1 {
     font-size: 1.1em;
 }
 
+/* Info Panel */
+.info-panel {
+    background: white;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-panel details {
+    padding: 20px;
+}
+
+.info-panel summary {
+    font-size: 1.2em;
+    color: #2c3e50;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    padding: 10px;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.info-panel summary::-webkit-details-marker {
+    display: none;
+}
+
+.info-panel summary:hover {
+    background: #f8f9fa;
+}
+
+.info-content {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    line-height: 1.8;
+}
+
+.info-content h4 {
+    color: #2c3e50;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.info-content h5 {
+    color: #34495e;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-size: 1.05em;
+}
+
+.info-content ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.info-content ul li {
+    margin-bottom: 8px;
+}
+
+.info-content code {
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #e74c3c;
+}
+
+.phase-section {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.metric-explanation {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.metric-desc {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #3498db;
+}
+
+.metric-desc strong {
+    color: #2c3e50;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.metric-desc em {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.example-box {
+    background: white;
+    padding: 20px;
+    border-radius: 6px;
+    border: 2px solid #3498db;
+}
+
+.example-box p {
+    margin-bottom: 8px;
+}
+
+.example-box hr {
+    margin: 15px 0;
+    border: none;
+    border-top: 2px solid #ecf0f1;
+}
+
+.example-box ul {
+    margin-left: 20px;
+}
+
 /* Mode Switcher */
 .mode-switcher {
     display: flex;
@@ -96,14 +221,14 @@ h1 {
     gap: 10px;
 }
 
-#threshold-slider {
-    width: 150px;
-}
-
-#threshold-value {
-    font-weight: bold;
-    color: #3498db;
-    min-width: 20px;
+.config-note {
+    margin-top: 15px;
+    padding: 10px;
+    background: #e8f4f8;
+    border-left: 4px solid #3498db;
+    border-radius: 4px;
+    color: #2c3e50;
+    font-size: 0.9em;
 }
 
 /* Mode Content */
@@ -276,6 +401,16 @@ textarea:focus {
     color: #2c3e50;
     margin-bottom: 20px;
     font-size: 1.8em;
+}
+
+.results-note {
+    background: #e8f4f8;
+    padding: 12px;
+    border-left: 4px solid #3498db;
+    border-radius: 4px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 0.95em;
 }
 
 /* Metrics Grid */
@@ -471,6 +606,59 @@ textarea:focus {
 
 .comparison-table tbody tr.table-row:nth-child(4n+1) {
     background: #fafafa;
+}
+
+/* Ranking styles */
+.comparison-table tbody tr.rank-1 {
+    background: #fff9e6 !important;
+    border-left: 4px solid #ffd700;
+}
+
+.comparison-table tbody tr.rank-2 {
+    background: #f5f5f5 !important;
+    border-left: 4px solid #c0c0c0;
+}
+
+.comparison-table tbody tr.rank-3 {
+    background: #fff5f0 !important;
+    border-left: 4px solid #cd7f32;
+}
+
+.rank-cell {
+    text-align: center;
+    font-weight: bold;
+}
+
+.rank-medal {
+    font-size: 1.5em;
+    display: inline-block;
+}
+
+.rank-medal.gold {
+    animation: pulse-gold 2s ease-in-out infinite;
+}
+
+.rank-medal.silver {
+    animation: pulse-silver 2s ease-in-out infinite;
+}
+
+.rank-medal.bronze {
+    animation: pulse-bronze 2s ease-in-out infinite;
+}
+
+@keyframes pulse-gold {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes pulse-silver {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+@keyframes pulse-bronze {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
 }
 
 .model-name {

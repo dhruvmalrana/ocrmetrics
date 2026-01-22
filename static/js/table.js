@@ -5,8 +5,8 @@
 
 window.TableRenderer = {
     results: [],
-    sortColumn: null,
-    sortAscending: true,
+    sortColumn: 'f1_score',  // Default sort by F1 score
+    sortAscending: false,    // Descending (highest first)
     visibleColumns: new Set(['precision', 'recall', 'f1', 'crr', 'exact']),
 
     renderTable(results) {
@@ -41,6 +41,9 @@ window.TableRenderer = {
         // Expand column
         tr.appendChild(this.createHeaderCell('', 'expand', false));
 
+        // Rank column
+        tr.appendChild(this.createHeaderCell('Rank', 'rank', false));
+
         // Model name
         tr.appendChild(this.createHeaderCell('Model', 'model_name', true));
 
@@ -59,9 +62,6 @@ window.TableRenderer = {
         }
         if (this.visibleColumns.has('exact')) {
             tr.appendChild(this.createHeaderCell('Exact Matches', 'exact_matches', true));
-        }
-        if (this.visibleColumns.has('fuzzy')) {
-            tr.appendChild(this.createHeaderCell('Fuzzy Matches', 'fuzzy_matches', true));
         }
 
         thead.appendChild(tr);
@@ -91,7 +91,13 @@ window.TableRenderer = {
         // Sort results if needed
         const sortedResults = this.getSortedResults();
 
-        sortedResults.forEach((result, index) => {
+        // Calculate rankings based on F1 score (descending)
+        const rankedResults = sortedResults.map((result, index) => ({
+            ...result,
+            rank: index + 1
+        }));
+
+        rankedResults.forEach((result, index) => {
             // Main row
             const tr = this.createTableRow(result, index);
             tbody.appendChild(tr);
@@ -108,6 +114,15 @@ window.TableRenderer = {
         const tr = document.createElement('tr');
         tr.className = 'table-row';
 
+        // Add ranking class for top 3
+        if (result.rank === 1) {
+            tr.classList.add('rank-1');
+        } else if (result.rank === 2) {
+            tr.classList.add('rank-2');
+        } else if (result.rank === 3) {
+            tr.classList.add('rank-3');
+        }
+
         // Expand button
         const expandTd = document.createElement('td');
         const expandBtn = document.createElement('button');
@@ -117,6 +132,23 @@ window.TableRenderer = {
         expandBtn.addEventListener('click', () => this.toggleRowExpansion(index));
         expandTd.appendChild(expandBtn);
         tr.appendChild(expandTd);
+
+        // Rank cell with medals
+        const rankTd = document.createElement('td');
+        rankTd.className = 'rank-cell';
+        if (result.rank === 1) {
+            rankTd.innerHTML = '<span class="rank-medal gold">🥇</span>';
+            rankTd.title = 'Champion - Highest F1 Score';
+        } else if (result.rank === 2) {
+            rankTd.innerHTML = '<span class="rank-medal silver">🥈</span>';
+            rankTd.title = '2nd Place';
+        } else if (result.rank === 3) {
+            rankTd.innerHTML = '<span class="rank-medal bronze">🥉</span>';
+            rankTd.title = '3rd Place';
+        } else {
+            rankTd.textContent = result.rank;
+        }
+        tr.appendChild(rankTd);
 
         // Model name
         const modelTd = document.createElement('td');
@@ -142,11 +174,6 @@ window.TableRenderer = {
         if (this.visibleColumns.has('exact')) {
             const td = document.createElement('td');
             td.textContent = metrics.exact_matches;
-            tr.appendChild(td);
-        }
-        if (this.visibleColumns.has('fuzzy')) {
-            const td = document.createElement('td');
-            td.textContent = metrics.fuzzy_matches;
             tr.appendChild(td);
         }
 
@@ -302,7 +329,6 @@ window.TableRenderer = {
         if (this.visibleColumns.has('f1')) headers.push('F1 Score');
         if (this.visibleColumns.has('crr')) headers.push('Avg CRR');
         if (this.visibleColumns.has('exact')) headers.push('Exact Matches');
-        if (this.visibleColumns.has('fuzzy')) headers.push('Fuzzy Matches');
 
         const rows = [headers];
 
@@ -315,7 +341,6 @@ window.TableRenderer = {
             if (this.visibleColumns.has('f1')) row.push(Utils.formatPercentage(m.f1_score));
             if (this.visibleColumns.has('crr')) row.push(Utils.formatPercentage(m.avg_crr));
             if (this.visibleColumns.has('exact')) row.push(m.exact_matches);
-            if (this.visibleColumns.has('fuzzy')) row.push(m.fuzzy_matches);
 
             rows.push(row);
         });

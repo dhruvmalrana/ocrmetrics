@@ -9,7 +9,7 @@ const AppConfig = {
         return {
             case_sensitive: document.getElementById('case-sensitive').checked,
             ignore_punctuation: document.getElementById('ignore-punctuation').checked,
-            edit_distance_threshold: parseInt(document.getElementById('threshold-slider').value)
+            edit_distance_threshold: 0  // Fixed to 0 for exact matching only (standard OCR evaluation)
         };
     }
 };
@@ -35,14 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
         manualModeBtn.classList.remove('active');
         batchMode.classList.add('active');
         manualMode.classList.remove('active');
-    });
-
-    // Threshold slider update
-    const thresholdSlider = document.getElementById('threshold-slider');
-    const thresholdValue = document.getElementById('threshold-value');
-
-    thresholdSlider.addEventListener('input', function() {
-        thresholdValue.textContent = this.value;
     });
 });
 

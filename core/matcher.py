@@ -112,8 +112,8 @@ def create_annotations(word_data, matches, is_ground_truth=True):
         list: List of annotation dicts with keys: word, match_type, matched_with, edit_distance
     """
     # Build a mapping from normalized words to their match information
-    # Handle duplicates by tracking counts
-    match_map = {}  # normalized_word -> list of (matched_with, edit_dist, match_type)
+    # Handle duplicates by tracking available matches
+    match_map = {}  # normalized_word -> list of {match_info, used: bool}
 
     if is_ground_truth:
         for match in matches:
@@ -124,7 +124,8 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                 match_map[gt_word].append({
                     'matched_with': ocr_word,
                     'edit_distance': edit_dist,
-                    'match_type': match_type
+                    'match_type': match_type,
+                    'used': False  # Track if this match has been consumed
                 })
     else:
         for match in matches:
@@ -135,27 +136,34 @@ def create_annotations(word_data, matches, is_ground_truth=True):
                 match_map[ocr_word].append({
                     'matched_with': gt_word,
                     'edit_distance': edit_dist,
-                    'match_type': match_type
+                    'match_type': match_type,
+                    'used': False  # Track if this match has been consumed
                 })
 
     # Create annotations in original word order
     annotations = []
-    used_counts = {}  # Track which instance of each word we've used
 
     for word_info in word_data:
         normalized = word_info['normalized']
         original = word_info['original']
 
         if normalized in match_map:
-            # Get the index for this instance of the word
-            idx = used_counts.get(normalized, 0)
-            used_counts[normalized] = idx + 1
+            # Find the next available (unused) match for this word
+            # Prefer exact matches, then fuzzy, then only matches
+            available_matches = [m for m in match_map[normalized] if not m['used']]
 
-            # Get match info for this instance (if available)
-            if idx < len(match_map[normalized]):
-                match_info = match_map[normalized][idx]
+            if available_matches:
+                # Sort by match quality: exact > fuzzy > only
+                match_priority = {'exact': 0, 'fuzzy': 1, 'gt_only': 2, 'ocr_only': 2}
+                available_matches.sort(key=lambda m: match_priority.get(m['match_type'], 3))
+
+                # Use the best available match
+                match_info = available_matches[0]
+                match_info['used'] = True  # Mark as consumed
             else:
-                # Fallback if we have more instances than matches
+                # All matches for this word have been used - this shouldn't happen
+                # if matching logic is correct, but handle gracefully
+                # Use the last match (reuse it)
                 match_info = match_map[normalized][-1]
 
             annotations.append({

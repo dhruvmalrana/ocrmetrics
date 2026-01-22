@@ -13,6 +13,80 @@
             <p class="subtitle">Evaluate OCR output quality with precision, recall, and character recognition rate</p>
         </header>
 
+        <!-- How It Works Section -->
+        <div class="info-panel">
+            <details>
+                <summary><strong>📖 How It Works - Standard OCR Evaluation Metrics</strong></summary>
+                <div class="info-content">
+                    <h4>Evaluation Method</h4>
+                    <p>This tool uses <strong>standard OCR evaluation methodology</strong> with exact word matching:</p>
+                    <ul>
+                        <li>Words are preprocessed (case normalization, punctuation removal based on config)</li>
+                        <li>Only <strong>exact matches</strong> count toward Precision and Recall</li>
+                        <li>Character errors are calculated using <strong>Levenshtein edit distance</strong></li>
+                    </ul>
+
+                    <h4>Metrics Explained</h4>
+                    <div class="metric-explanation">
+                        <div class="metric-desc">
+                            <strong>Precision</strong> What % of OCR words are correct?
+                            <br><code>Precision = Exact Matches / Total OCR Words</code>
+                            <br><em>Example: OCR outputs "hello world test", GT has "hello world" → 2/3 = 66.67%</em>
+                        </div>
+                        <div class="metric-desc">
+                            <strong>Recall</strong> What % of GT words were found?
+                            <br><code>Recall = Exact Matches / Total GT Words</code>
+                            <br><em>Example: GT has "hello world test", OCR outputs "hello world" → 2/3 = 66.67%</em>
+                        </div>
+                        <div class="metric-desc">
+                            <strong>F1 Score</strong> Balanced measure of precision and recall
+                            <br><code>F1 = 2 × (Precision × Recall) / (Precision + Recall)</code>
+                            <br><em>Single metric for comparing OCR models</em>
+                        </div>
+                        <div class="metric-desc">
+                            <strong>CRR (Character Recognition Rate)</strong> Character-level accuracy
+                            <br><code>CRR = 1 - (Character Errors / Total GT Characters)</code>
+                            <br><em>Example: GT "hello" vs OCR "helo" → 1 error / 5 chars = 80% CRR</em>
+                            <br>Character errors = edit distances for matched words + all chars in unmatched words
+                        </div>
+                    </div>
+
+                    <h4>Complete Example</h4>
+                    <div class="example-box">
+                        <p><strong>Ground Truth:</strong> "The quick brown fox"</p>
+                        <p><strong>OCR Output:</strong> "The quik brown"</p>
+                        <hr>
+                        <p><strong>Word Matching:</strong></p>
+                        <ul>
+                            <li>Exact matches: "The", "brown" (2 words match exactly)</li>
+                            <li>Unmatched in GT: "quick", "fox"</li>
+                            <li>Unmatched in OCR: "quik"</li>
+                        </ul>
+                        <p><strong>Metrics:</strong></p>
+                        <ul>
+                            <li><strong>Precision:</strong> 2/3 = 66.67%</li>
+                            <li><strong>Recall:</strong> 2/4 = 50.00%</li>
+                            <li><strong>F1 Score:</strong> 57.14%</li>
+                            <li><strong>CRR:</strong>
+                                <br>• Matched: "The"↔"The" (0 errors), "brown"↔"brown" (0 errors)
+                                <br>• Unmatched GT: "quick" (5 chars), "fox" (3 chars) = 8 errors
+                                <br>• Unmatched OCR: "quik" (4 chars) = 4 errors
+                                <br>• Total: 12 errors / 16 GT chars = 25% CRR</li>
+                        </ul>
+                    </div>
+
+                    <h4>Quick Reference</h4>
+                    <ul>
+                        <li><strong>High Precision:</strong> OCR doesn't add extra/wrong words</li>
+                        <li><strong>High Recall:</strong> OCR doesn't miss words</li>
+                        <li><strong>High F1:</strong> Good balance of both</li>
+                        <li><strong>High CRR:</strong> Few character-level errors</li>
+                        <li><strong>Color coding:</strong> Normal = exact match, Red = no match</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
         <!-- Mode Switcher -->
         <div class="mode-switcher">
             <button id="manual-mode-btn" class="mode-btn active">Manual Input</button>
@@ -24,13 +98,6 @@
             <h3>Configuration</h3>
             <div class="config-row">
                 <label>
-                    <span>Edit Distance Threshold:</span>
-                    <input type="range" id="threshold-slider" min="0" max="5" value="1" step="1">
-                    <span id="threshold-value">1</span>
-                </label>
-            </div>
-            <div class="config-row">
-                <label>
                     <input type="checkbox" id="case-sensitive" />
                     Case Sensitive
                 </label>
@@ -39,6 +106,7 @@
                     Ignore Punctuation
                 </label>
             </div>
+            <p class="config-note">Note: Metrics use exact word matching only (standard OCR evaluation)</p>
         </div>
 
         <!-- Manual Input Mode -->
@@ -86,16 +154,16 @@
                         <span id="exact-matches">-</span>
                     </div>
                     <div class="detail-item">
-                        <span>Fuzzy Matches:</span>
-                        <span id="fuzzy-matches">-</span>
-                    </div>
-                    <div class="detail-item">
                         <span>Total GT Words:</span>
                         <span id="total-gt">-</span>
                     </div>
                     <div class="detail-item">
                         <span>Total OCR Words:</span>
                         <span id="total-ocr">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Unmatched Words:</span>
+                        <span id="unmatched-words">-</span>
                     </div>
                 </div>
 
@@ -116,10 +184,6 @@
                         <div class="legend-item">
                             <span class="legend-color exact-match"></span>
                             <span>Exact Match (no highlight)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color fuzzy-match"></span>
-                            <span>Fuzzy Match (purple)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-color no-match"></span>
@@ -152,6 +216,7 @@
 
             <div id="batch-results" class="results-section" style="display: none;">
                 <h3>Comparison Results</h3>
+                <p class="results-note">Results sorted by F1 Score (highest first). Top 3 models are highlighted with medals.</p>
 
                 <!-- Column Visibility Controls -->
                 <div class="column-controls">
@@ -160,7 +225,6 @@
                     <label><input type="checkbox" class="column-toggle" data-column="f1" checked> F1 Score</label>
                     <label><input type="checkbox" class="column-toggle" data-column="crr" checked> Avg CRR</label>
                     <label><input type="checkbox" class="column-toggle" data-column="exact" checked> Exact Matches</label>
-                    <label><input type="checkbox" class="column-toggle" data-column="fuzzy"> Fuzzy Matches</label>
                 </div>
 
                 <button id="export-csv-btn" class="secondary-btn">Export as CSV</button>
@@ -175,10 +239,6 @@
                         <div class="legend-item">
                             <span class="legend-color exact-match"></span>
                             <span>Exact Match (no highlight)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color fuzzy-match"></span>
-                            <span>Fuzzy Match (purple)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-color no-match"></span>

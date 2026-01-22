@@ -90,15 +90,31 @@ def preprocess_text(text, config):
         tuple: (list of preprocessed words, list of original words with positions)
     """
     original_words = tokenize(text)
-    normalized_words = normalize(original_words, config)
 
-    # Create list of tuples: (normalized_word, original_word, position)
+    # Normalize each word individually and track which ones remain
+    # This preserves the correct pairing between original and normalized
+    normalized_words = []
     word_data = []
-    for i, (normalized, original) in enumerate(zip(normalized_words, original_words)):
-        word_data.append({
-            'normalized': normalized,
-            'original': original,
-            'position': i
-        })
+
+    for i, original in enumerate(original_words):
+        # Normalize this specific word
+        if config.get('ignore_punctuation', True):
+            punct_chars = config.get('punctuation_chars', string.punctuation)
+            normalized = remove_punctuation(original, punct_chars)
+        else:
+            normalized = original
+
+        # Handle case sensitivity
+        if not config.get('case_sensitive', False):
+            normalized = normalized.lower()
+
+        # Only keep non-empty words (but maintain correct pairing)
+        if normalized:
+            normalized_words.append(normalized)
+            word_data.append({
+                'normalized': normalized,
+                'original': original,
+                'position': len(normalized_words) - 1  # Position in normalized list
+            })
 
     return normalized_words, word_data
