@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Metrics Evaluator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>OCR Metrics Evaluator</h1>
+            <p class="subtitle">Evaluate OCR output quality with precision, recall, and character recognition rate</p>
+        </header>
+
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+            <button id="manual-mode-btn" class="mode-btn active">Manual Input</button>
+            <button id="batch-mode-btn" class="mode-btn">Batch Upload</button>
+        </div>
+
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <h3>Configuration</h3>
+            <div class="config-row">
+                <label>
+                    <span>Edit Distance Threshold:</span>
+                    <input type="range" id="threshold-slider" min="0" max="5" value="1" step="1">
+                    <span id="threshold-value">1</span>
+                </label>
+            </div>
+            <div class="config-row">
+                <label>
+                    <input type="checkbox" id="case-sensitive" />
+                    Case Sensitive
+                </label>
+                <label>
+                    <input type="checkbox" id="ignore-punctuation" checked />
+                    Ignore Punctuation
+                </label>
+            </div>
+        </div>
+
+        <!-- Manual Input Mode -->
+        <div id="manual-mode" class="mode-content active">
+            <div class="input-section">
+                <div class="input-column">
+                    <h3>Ground Truth</h3>
+                    <textarea id="ground-truth" placeholder="Enter ground truth text..."></textarea>
+                </div>
+                <div class="input-column">
+                    <h3>OCR Output</h3>
+                    <textarea id="ocr-output" placeholder="Enter OCR output text..."></textarea>
+                </div>
+            </div>
+
+            <div class="button-section">
+                <button id="analyze-btn" class="primary-btn">Analyze</button>
+            </div>
+
+            <div id="manual-results" class="results-section" style="display: none;">
+                <h3>Results</h3>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Precision</div>
+                        <div class="metric-value" id="precision-value">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Recall</div>
+                        <div class="metric-value" id="recall-value">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">F1 Score</div>
+                        <div class="metric-value" id="f1-value">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Avg CRR</div>
+                        <div class="metric-value" id="crr-value">-</div>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span>Exact Matches:</span>
+                        <span id="exact-matches">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Fuzzy Matches:</span>
+                        <span id="fuzzy-matches">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Total GT Words:</span>
+                        <span id="total-gt">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Total OCR Words:</span>
+                        <span id="total-ocr">-</span>
+                    </div>
+                </div>
+
+                <div class="visualization-section">
+                    <div class="viz-column">
+                        <h4>Ground Truth (Annotated)</h4>
+                        <div id="gt-visualization" class="text-viz"></div>
+                    </div>
+                    <div class="viz-column">
+                        <h4>OCR Output (Annotated)</h4>
+                        <div id="ocr-visualization" class="text-viz"></div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <h4>Legend</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color exact-match"></span>
+                            <span>Exact Match (no highlight)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color fuzzy-match"></span>
+                            <span>Fuzzy Match (purple)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color no-match"></span>
+                            <span>No Match (red)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Upload Mode -->
+        <div id="batch-mode" class="mode-content">
+            <div class="upload-section">
+                <h3>Upload Files</h3>
+                <p class="upload-instructions">
+                    Upload multiple .txt files:<br>
+                    • <strong>gt.txt</strong> - Ground truth text<br>
+                    • <strong>&lt;model_name&gt;_out.txt</strong> - OCR outputs (e.g., tesseract_out.txt)
+                </p>
+                <div id="drop-zone" class="drop-zone">
+                    <p>Drag and drop files here or click to browse</p>
+                    <input type="file" id="file-input" multiple accept=".txt" style="display: none;">
+                </div>
+                <div id="file-list" class="file-list"></div>
+            </div>
+
+            <div class="button-section">
+                <button id="batch-analyze-btn" class="primary-btn" style="display: none;">Analyze All</button>
+            </div>
+
+            <div id="batch-results" class="results-section" style="display: none;">
+                <h3>Comparison Results</h3>
+
+                <!-- Column Visibility Controls -->
+                <div class="column-controls">
+                    <label><input type="checkbox" class="column-toggle" data-column="precision" checked> Precision</label>
+                    <label><input type="checkbox" class="column-toggle" data-column="recall" checked> Recall</label>
+                    <label><input type="checkbox" class="column-toggle" data-column="f1" checked> F1 Score</label>
+                    <label><input type="checkbox" class="column-toggle" data-column="crr" checked> Avg CRR</label>
+                    <label><input type="checkbox" class="column-toggle" data-column="exact" checked> Exact Matches</label>
+                    <label><input type="checkbox" class="column-toggle" data-column="fuzzy"> Fuzzy Matches</label>
+                </div>
+
+                <button id="export-csv-btn" class="secondary-btn">Export as CSV</button>
+
+                <div id="comparison-table-container">
+                    <!-- Table will be inserted here by table.js -->
+                </div>
+
+                <div class="legend">
+                    <h4>Legend</h4>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-color exact-match"></span>
+                            <span>Exact Match (no highlight)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color fuzzy-match"></span>
+                            <span>Fuzzy Match (purple)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color no-match"></span>
+                            <span>No Match (red)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message" style="display: none;"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/manual-mode.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/batch-mode.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/table.js') }}"></script>
+</body>
+</html>
